@@ -1,7 +1,10 @@
-#include <stdio.h>
-#include "./simple_http/test.h"
+#include <stdint.h>
+#include "simple_http/simple_http_app.h"
 
-int main() {
-    printf("TEST %d\n", test_func());
+int32_t main(int32_t argc, char** argv) {
+    server my_server;
+    config_server(&my_server, "PATH!", argc, argv);
+    start_server(&my_server);
+    destroy_server(&my_server);
     return 0;
 }
