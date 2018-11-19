@@ -5,7 +5,10 @@
 #include <netinet/in.h>
 #include <glib.h>
 
+#include "simple_http_type_config.h"
+
 typedef struct {
+    config*                 cfg;
     char*                   buffer;
     struct sockaddr_in      address;
     int32_t                 fd;

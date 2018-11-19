@@ -10,8 +10,7 @@ static void _int_handler(int32_t sig) {
 void config_server(server* srv, char* path, int32_t argc, char** argv) {
     signal(SIGINT, _int_handler);
 
-    printf("(Temp warning repressor %d %d %s %s)\n", srv->fd, argc, argv[0], path);
-    printf("Configuring server!\n");
+    init_config(srv, path, argc - 1, argv + 1);
 }
 
 void start_server(server* srv) {

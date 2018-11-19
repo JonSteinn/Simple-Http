@@ -3,7 +3,7 @@
 
 int32_t main(int32_t argc, char** argv) {
     server my_server;
-    config_server(&my_server, "PATH!", argc, argv);
+    config_server(&my_server, "./src/config.txt", argc, argv);
     start_server(&my_server);
     destroy_server(&my_server);
     return 0;
