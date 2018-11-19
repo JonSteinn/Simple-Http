@@ -19,13 +19,14 @@ endef
 all: $(TARGET)
 
 $(TARGET): $(TARGET).o $(DEPENDENCIES)
-	$(CC) $(TARGET).o $(DEPENDENCIES) -o $(TARGET) $(LDLIBS)
+	$(CC) $(TARGET).o $(DEPENDENCIES) -o $(TARGET).exe $(LDLIBS)
 
 $(call COMPILE,TARGET)
 $(call COMPILE,TEST)
 
 clean:
 	rm -f *.o
+	rm -f simple_http/*.o
 
 distclean: clean
-	rm -f $(TARGET)
+	rm -f $(TARGET).exe
