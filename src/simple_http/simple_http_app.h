@@ -6,10 +6,11 @@
 #include <signal.h>
 #include <stdint.h>
 
-#include "./types/simple_http_type_config.h"
-#include "./types/simple_http_type_server.h"
+#include "types/simple_http_type_config.h"
+#include "types/simple_http_type_server.h"
 
-#include "./simple_http_server_config.h"
+#include "simple_http_server_config.h"
+#include "simple_http_server_socket.h"
 
 void config_server(server* srv, char* path, int32_t argc, char** argv);
 void start_server(server* srv);
