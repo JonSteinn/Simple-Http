@@ -12,14 +12,20 @@ void config_server(server* srv, char* path, int32_t argc, char** argv) {
 
     init_config(srv, path, argc - 1, argv + 1);
     init_socket(srv);
+    init_poll(srv);
 }
 
 void start_server(server* srv) {
-    printf("(Temp warning repressor %d)\n", srv->fd);
-    printf("Starting server!\n");
+    if (srv->cfg->debug) {
+        char ip_str[16];
+        inet_ntop(AF_INET, &(srv->cfg->ip), ip_str, INET_ADDRSTRLEN);
+        fprintf(stdout, "Listening on http://%s:%hu (CTRL+C to quit)\n", ip_str, srv->cfg->port);
+        fflush(stdout);
+    }
 }
 
 void destroy_server(server* srv) {
     destroy_config(srv);
     destroy_socket(srv);
+    destroy_poll(srv);
 }

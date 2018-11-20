@@ -13,7 +13,8 @@ PREFIX_NAME = $(LIB_DIR)simple_http_
 APP = $(PREFIX_NAME)app
 CONFIG = $(PREFIX_NAME)server_config
 SOCKET = $(PREFIX_NAME)server_socket
-DEPENDENCIES = $(APP).o $(CONFIG).o $(SOCKET).o
+POLL = $(PREFIX_NAME)server_poll
+DEPENDENCIES = $(APP).o $(CONFIG).o $(SOCKET).o $(POLL).o
 
 # Compile function with required flasg
 define COMPILE
@@ -34,6 +35,7 @@ $(call COMPILE,TARGET)
 $(call COMPILE,APP)
 $(call COMPILE,CONFIG)
 $(call COMPILE,SOCKET)
+$(call COMPILE,POLL)
 
 # Removal of .o files
 clean:
