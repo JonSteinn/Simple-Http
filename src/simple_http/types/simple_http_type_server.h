@@ -6,9 +6,11 @@
 #include <glib.h>
 
 #include "simple_http_type_config.h"
+#include "simple_http_type_polling.h"
 
 typedef struct {
     config*                 cfg;
+    polling*                poll;
     char*                   buffer;
     struct sockaddr_in      address;
     int32_t                 fd;
