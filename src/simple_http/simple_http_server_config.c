@@ -19,7 +19,9 @@ void init_config(server* srv, char* path, int32_t argc, char** argv) {
     
     g_hash_table_destroy(settings);
 
-    if (srv->cfg->debug) _config_display(srv->cfg);
+    if (srv->cfg->debug) {
+        _config_display(srv->cfg);
+    }
 }
 
 /**
@@ -50,16 +52,24 @@ void _config_set_from_file(GHashTable* settings, char* path) {
     file = fopen(path, "r");
     
     // If file is not found
-    if (!file) return;
+    if (!file) {
+        return;
+    }
 
     // Read line by line
     while ((read = getline(&line, &len, file)) != EOF) {
-        if (read > 2) _config_parse_line(settings, line, (int32_t)read);
+        if (read > 2) {
+            _config_parse_line(settings, line, (int32_t)read);
+        }
     }
 
     // cleanup
-    if (line) free(line);
-    if (file) fclose(file);
+    if (line) {
+        free(line);
+    }
+    if (file) {
+        fclose(file);
+    }
 }
 
 /**
@@ -77,7 +87,9 @@ void _config_parse_line(GHashTable* settings, char* line, int32_t chars_read) {
     }
 
     // If too short or comment
-    if (chars_read < 3 || line[0] == '#') return;
+    if (chars_read < 3 || line[0] == '#') {
+        return;
+    }
     
     // Any ' ', '\t', '\r', ... before '=' are ignored
     int32_t run = 0;
@@ -103,19 +115,25 @@ void _config_parse_line(GHashTable* settings, char* line, int32_t chars_read) {
 void _config_split_line(GHashTable* settings, char* line, int32_t chars_read, int32_t run, int32_t split) {
     // Find end of second word
     int32_t end = chars_read - 1;
-    while (line[end] < 33) end--;
+    while (line[end] < 33) {
+        end--;
+    }
 
     int32_t first_size = split - run;
     int32_t second_size = end - split;
     
     // Place the split at the first char of the second word 
     // and reduce its size for each ' ', '\t', '\r',... found.
-    while (line[++split] < 33 && line[split] != '\0') second_size--;
+    while (line[++split] < 33 && line[split] != '\0') {
+        second_size--;
+    }
 
     if (first_size && second_size) {
         char* first = g_strndup(line, first_size);
         char* second = g_strndup(line + split, second_size);
-        for (int32_t i = 0; i < first_size; i++) first[i] = toupper(first[i]);
+        for (int32_t i = 0; i < first_size; i++) {
+            first[i] = toupper(first[i]);
+        }
         g_hash_table_insert(settings, first, second);
     }    
 }
@@ -164,7 +182,9 @@ void _config_set(config* cfg, GHashTable* settings) {
  * value is NULL.
  */
 void _config_set_debug(config* cfg, char* value) {
-    if (!value) return;
+    if (!value) {
+        return;
+    }
     cfg->debug = (value[0] == 't' || value[0] == 'T' || value[0] == '1');
 }
 
@@ -175,13 +195,17 @@ void _config_set_debug(config* cfg, char* value) {
  * default value). Does nothing if value is NULL.
  */
 void _config_set_port(config* cfg, char* value) {
-    if (!value) return;
+    if (!value) {
+        return;
+    }
     int32_t port = strtoul(value, NULL, 0);
     
     // If not number, port = 0
     // If well known, port in {1,2,...,1023}
     // if too large, port > 65535 or errno = ERANGE
-    if (errno == ERANGE || port < 1024 || port > 65535) return;
+    if (errno == ERANGE || port < 1024 || port > 65535) {
+        return;
+    }
 
     cfg->port = (uint16_t)port;
 }
@@ -192,10 +216,14 @@ void _config_set_port(config* cfg, char* value) {
  * nothing gets done.
  */
 void _config_set_max_queued(config* cfg, char* value) {
-    if (!value) return;
+    if (!value) {
+        return;
+    }
 
     int32_t queue_size = strtoul(value, NULL, 0);
-    if (errno == ERANGE || queue_size < 1) return;
+    if (errno == ERANGE || queue_size < 1) {
+        return;
+    }
 
     cfg->max_queued = queue_size;
 }
@@ -206,10 +234,14 @@ void _config_set_max_queued(config* cfg, char* value) {
  * nothing gets done.
  */
 void _config_set_max_clients(config* cfg, char* value) {
-    if (!value) return;
+    if (!value) {
+        return;
+    }
 
     int32_t max_connected = strtoul(value, NULL, 0);
-    if (errno == ERANGE || max_connected < 1) return;
+    if (errno == ERANGE || max_connected < 1) {
+        return;
+    }
 
     cfg->max_clients = max_connected;
 
@@ -221,10 +253,14 @@ void _config_set_max_clients(config* cfg, char* value) {
  * than 4096. 
  */
 void _config_set_buffer_size(config* cfg, char* value) {
-    if (!value) return;
+    if (!value) {
+        return;
+    }
 
     int32_t b_size = strtoul(value, NULL, 0);
-    if (errno == ERANGE || b_size < 4096) return;
+    if (errno == ERANGE || b_size < 4096) {
+        return;
+    }
 
     cfg->buffer_size = b_size;
 }
@@ -234,9 +270,14 @@ void _config_set_buffer_size(config* cfg, char* value) {
  * nothing is done.
  */
 void _config_set_ip(config* cfg, char* value) {
-    if (!value) return;
+    if (!value) {
+        return;
+    }
+
     uint32_t tmp_ip;
-    if (inet_pton(AF_INET, value, &tmp_ip) > 0) cfg->ip = tmp_ip;
+    if (inet_pton(AF_INET, value, &tmp_ip) > 0) {
+        cfg->ip = tmp_ip;
+    }
 }
 
 /**
@@ -244,10 +285,14 @@ void _config_set_ip(config* cfg, char* value) {
  * events occur, if valid. A non-positive time is invalid.
  */
 void _config_set_poll_timeout(config* cfg, char* value) {
-    if (!value) return;
+    if (!value) {
+        return;
+    }
     
     int32_t p_time = strtoul(value, NULL, 0);
-    if (errno == ERANGE || p_time <= 0) return;
+    if (errno == ERANGE || p_time <= 0) {
+        return;
+    }
 
     cfg->poll_timeout = p_time;
 }

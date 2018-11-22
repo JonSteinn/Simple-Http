@@ -8,7 +8,9 @@ void init_socket(server* srv) {
     _setup_socket(srv);
     _bind_socket(srv);
     _listen_on_socket(srv);
-    if (srv->cfg->debug) _socket_display(srv);
+    if (srv->cfg->debug) {
+        _socket_display(srv);
+    }
 }
 
 /**
@@ -42,7 +44,9 @@ void _setup_socket(server* srv) {
  */
 void _bind_socket(server* srv) {
     if (srv->fd < 0 || bind(srv->fd, (struct sockaddr*)&srv->address, (socklen_t)sizeof(struct sockaddr_in)) < 0) {
-        if (srv->fd >= 0) perror("Failed to bind socket!\n");
+        if (srv->fd >= 0) {
+            perror("Failed to bind socket!\n");
+        }
         srv->fd = -1;
     }
 }
@@ -53,7 +57,9 @@ void _bind_socket(server* srv) {
  */
 void _listen_on_socket(server* srv) {
     if (srv->fd < 0 || listen(srv->fd, srv->cfg->max_queued) < 0) {
-        if (srv->fd >= 0) perror("Failed to listen on socket!\n");
+        if (srv->fd >= 0) {
+            perror("Failed to listen on socket!\n");
+        }
         srv->fd = -1;
     }
 }
@@ -74,5 +80,7 @@ void _socket_display(server* srv) {
  * Deep cleanup for socket related variables for server.
  */
 void destroy_socket(server* srv) {
-    if (srv->fd != -1) close(srv->fd);
+    if (srv->fd != -1) {
+        close(srv->fd);
+    }
 }

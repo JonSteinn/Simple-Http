@@ -8,11 +8,22 @@ static void _int_handler(int32_t sig) {
 
 
 void config_server(server* srv, char* path, int32_t argc, char** argv) {
-    signal(SIGINT, _int_handler);
+    if (!(run = signal(SIGINT, _int_handler) != SIG_ERR)) {
+        perror("Error setting signal\n");
+        run = false;
+        return;
+    }
 
     init_config(srv, path, argc - 1, argv + 1);
     init_socket(srv);
     init_poll(srv);
+    init_client_pool(srv);
+    
+    srv->buffer = (char*)malloc(sizeof(char) * srv->cfg->buffer_size);
+
+
+
+    run = srv->fd != -1;
 }
 
 void start_server(server* srv) {
@@ -22,10 +33,31 @@ void start_server(server* srv) {
         fprintf(stdout, "Listening on http://%s:%hu (CTRL+C to quit)\n", ip_str, srv->cfg->port);
         fflush(stdout);
     }
+
+    while(run) {
+        if (has_event(srv, &run) && run) {
+            if (new_client_event(srv)) {
+                add_new_client(srv);
+            }
+            for (int32_t i = 1; i < srv->poll->fds_in_use && run; i++) {
+                if (existing_client_event(i, srv)) {
+                    handle_client(srv, i);
+                }
+            }
+        }
+
+        if (run) {
+            timeout_clients(srv);
+            compress_fds(srv);
+        }
+    }
 }
 
 void destroy_server(server* srv) {
     destroy_config(srv);
     destroy_socket(srv);
     destroy_poll(srv);
+    destroy_client_pool(srv);
+
+    free(srv->buffer);
 }

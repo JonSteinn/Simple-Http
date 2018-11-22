@@ -14,7 +14,10 @@ APP = $(PREFIX_NAME)app
 CONFIG = $(PREFIX_NAME)server_config
 SOCKET = $(PREFIX_NAME)server_socket
 POLL = $(PREFIX_NAME)server_poll
-DEPENDENCIES = $(APP).o $(CONFIG).o $(SOCKET).o $(POLL).o
+UTIL = $(PREFIX_NAME)util
+CLI_HANDLER = $(PREFIX_NAME)client_handler
+# Combination
+DEPENDENCIES = $(APP).o $(CONFIG).o $(SOCKET).o $(POLL).o $(UTIL).o $(CLI_HANDLER).o
 
 # Compile function with required flasg
 define COMPILE
@@ -36,6 +39,8 @@ $(call COMPILE,APP)
 $(call COMPILE,CONFIG)
 $(call COMPILE,SOCKET)
 $(call COMPILE,POLL)
+$(call COMPILE,UTIL)
+$(call COMPILE,CLI_HANDLER)
 
 # Removal of .o files
 clean:

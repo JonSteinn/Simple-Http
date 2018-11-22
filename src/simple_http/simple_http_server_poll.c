@@ -68,7 +68,9 @@ void compress_fds(server* srv) {
  * Reduce fds_in_use for any trailing fd that is -1.
  */
 void _compress_fds_from_right_end(server* srv) {
-    while (srv->poll->fds[srv->poll->fds_in_use - 1].fd == -1) srv->poll->fds_in_use--;
+    while (srv->poll->fds[srv->poll->fds_in_use - 1].fd == -1) {
+        srv->poll->fds_in_use--;
+    }
 }
 
 /**

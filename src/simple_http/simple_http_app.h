@@ -12,6 +12,7 @@
 #include "simple_http_server_config.h"
 #include "simple_http_server_socket.h"
 #include "simple_http_server_poll.h"
+#include "simple_http_client_handler.h"
 
 void config_server(server* srv, char* path, int32_t argc, char** argv);
 void start_server(server* srv);
