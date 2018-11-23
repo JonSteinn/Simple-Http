@@ -27,7 +27,6 @@ void add_new_client(server* srv) {
     }
 }
 
-
 client* _construct_new_client() {
     client* new_client = (client*)malloc(sizeof(client));
     new_client->last_active = time(NULL);
@@ -58,22 +57,36 @@ void _add_client_to_pool(server* srv, client* new_client, int32_t fd) {
 }
 
 void handle_client(server* srv, int32_t index) {
-    (void)srv;
-    (void)index;
-
-    fprintf(stdout, "index =%d\n", index);
-    fflush(stdout);
-
-    printf("\n\n\n\n");
-    while (1) {
-        size_t x = recv(srv->poll->fds[index].fd, srv->buffer, srv->cfg->buffer_size - 1, 0);
-        srv->buffer[x] = '\0';
-        printf("%s", srv->buffer);
-        if (x < srv->cfg->buffer_size - 1) break;
+    int fd = srv->poll->fds[index].fd;
+    client* cli = g_hash_table_lookup(srv->client_pool, &fd);
+    if (cli == NULL) {
+        // TODO: handle not found
+        perror("CLIENT NOT FOUND!");
+        exit(1);
     }
-    printf("\n\n\n\n");
+    
+    if (cli->raw_request == NULL) {
+        cli->raw_request = g_string_new_len(NULL, srv->cfg->buffer_size);
+    }
 
-    exit(0);
+    // TODO: replace with timeout mechanic wrapped around recv
+    ssize_t received = recv(fd, srv->buffer, srv->cfg->buffer_size - 1, 0);
+
+    if (received <= 0) {
+        perror("error from recv\n");
+        exit(1);
+        //TODO: handle better and handle =0 seperately
+    }
+
+    srv->buffer[received] = '\0';
+    g_string_append(cli->raw_request, srv->buffer);
+
+    bool lastData = recv(fd, srv->buffer, 1, MSG_PEEK | MSG_DONTWAIT) != 1;
+    if (lastData) {
+        printf("%s\n", cli->raw_request->str);
+        g_string_truncate(cli->raw_request, 0);
+        send(fd, "HTTP/1.1 200 Ok\r\nContent-Type: text/html\r\nContent-Length: 56\r\n\r\n<html><head><title>A</title></head><body>B</body></html>", 128, 0);
+    }
 }
 
 void timeout_clients(server* srv) {
@@ -83,7 +96,8 @@ void timeout_clients(server* srv) {
             time_t now = time(NULL);
             time_t last = ((client*)g_hash_table_lookup(srv->client_pool, &fd))->last_active;
 
-            if (difftime(now, last) >= 30) {
+            /// TODO: Place timeout param in config !!!!!!!!
+            if (difftime(now, last) >= 10) {
                 _remove_client_from_pool(srv, i, fd);
             }
         }
@@ -101,4 +115,7 @@ void _remove_client_from_pool(server* srv, int32_t i, int32_t fd) {
 
 void destroy_client_pool(server* srv) {
     g_hash_table_destroy(srv->client_pool);
+    for (int32_t i = srv->poll->fds_in_use - 1; i > 0; i--) {
+        close(srv->poll->fds[i].fd);
+    }
 }

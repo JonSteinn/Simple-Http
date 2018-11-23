@@ -35,7 +35,19 @@ void start_server(server* srv) {
     }
 
     while(run) {
+
+        for (int i = 0; i < srv->cfg->max_clients + 1; i++) {
+            if (srv->poll->fds[i].fd < 0) printf("## ");
+            else if (srv->poll->fds[i].fd < 10) printf("0%d ", srv->poll->fds[i].fd);
+            else printf("%d ", srv->poll->fds[i].fd);
+        }
+        putchar('\n');
+        fflush(stdout);
+
         if (has_event(srv, &run) && run) {
+
+            fprintf(stdout, "EVENT!\n"); fflush(stdout);
+
             if (new_client_event(srv)) {
                 add_new_client(srv);
             }
@@ -44,6 +56,8 @@ void start_server(server* srv) {
                     handle_client(srv, i);
                 }
             }
+        } else {
+            printf("Timeout\n"); fflush(stdout);
         }
 
         if (run) {
@@ -60,4 +74,5 @@ void destroy_server(server* srv) {
     destroy_client_pool(srv);
 
     free(srv->buffer);
+    close(srv->fd);
 }
