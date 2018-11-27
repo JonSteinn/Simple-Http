@@ -18,6 +18,8 @@ void config_server(server* srv, char* path, int32_t argc, char** argv) {
     init_socket(srv);
     init_poll(srv);
     init_client_pool(srv);
+
+    init_default_responses(srv);
     
     srv->buffer = (char*)malloc(sizeof(char) * srv->cfg->buffer_size);
     
@@ -72,6 +74,8 @@ void destroy_server(server* srv) {
     destroy_client_pool(srv);
 
     destroy_poll(srv);
+
+    destroy_default_responses(srv);
 
     free(srv->buffer);
 }

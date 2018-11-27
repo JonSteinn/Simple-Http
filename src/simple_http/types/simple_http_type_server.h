@@ -15,8 +15,7 @@ typedef struct {
     struct sockaddr_in      address;
     int32_t                 fd;
     GHashTable*             client_pool;
-
-    
+    GHashTable*             default_response;
 } server;
 
 #endif
