@@ -20,7 +20,7 @@ void config_server(server* srv, char* path, int32_t argc, char** argv) {
     init_client_pool(srv);
     
     srv->buffer = (char*)malloc(sizeof(char) * srv->cfg->buffer_size);
-
+    
 
 
     run = srv->fd != -1;
@@ -36,6 +36,7 @@ void start_server(server* srv) {
 
     while(run) {
 
+        //##############################
         for (int i = 0; i < srv->cfg->max_clients + 1; i++) {
             if (srv->poll->fds[i].fd < 0) printf("## ");
             else if (srv->poll->fds[i].fd < 10) printf("0%d ", srv->poll->fds[i].fd);
@@ -43,11 +44,9 @@ void start_server(server* srv) {
         }
         putchar('\n');
         fflush(stdout);
+        //##############################
 
         if (has_event(srv, &run) && run) {
-
-            fprintf(stdout, "EVENT!\n"); fflush(stdout);
-
             if (new_client_event(srv)) {
                 add_new_client(srv);
             }
@@ -56,8 +55,6 @@ void start_server(server* srv) {
                     handle_client(srv, i);
                 }
             }
-        } else {
-            printf("Timeout\n"); fflush(stdout);
         }
 
         if (run) {
@@ -69,10 +66,12 @@ void start_server(server* srv) {
 
 void destroy_server(server* srv) {
     destroy_config(srv);
+
     destroy_socket(srv);
-    destroy_poll(srv);
+
     destroy_client_pool(srv);
 
+    destroy_poll(srv);
+
     free(srv->buffer);
-    close(srv->fd);
 }

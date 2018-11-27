@@ -5,7 +5,6 @@ void init_client_pool(server* srv) {
 }
 
 void _free_client(gpointer mem) {
-    // TODO: Add deep free for client struct as fields are added...
     client* cli = (client*)mem;
     if (cli->raw_request != NULL) {
         g_string_free(cli->raw_request, true);
@@ -96,8 +95,7 @@ void timeout_clients(server* srv) {
             time_t now = time(NULL);
             time_t last = ((client*)g_hash_table_lookup(srv->client_pool, &fd))->last_active;
 
-            /// TODO: Place timeout param in config !!!!!!!!
-            if (difftime(now, last) >= 10) {
+            if (difftime(now, last) >= srv->cfg->inactive_timeout) {
                 _remove_client_from_pool(srv, i, fd);
             }
         }

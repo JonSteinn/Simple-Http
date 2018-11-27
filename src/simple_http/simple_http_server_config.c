@@ -35,6 +35,7 @@ void _config_set_default(config* cfg) {
     cfg->buffer_size = 4096;
     cfg->poll_timeout = 1000;
     cfg->ip = htonl(INADDR_ANY);
+    cfg->inactive_timeout = 30;
 }
 
 /**
@@ -135,7 +136,7 @@ void _config_split_line(GHashTable* settings, char* line, int32_t chars_read, in
             first[i] = toupper(first[i]);
         }
         g_hash_table_insert(settings, first, second);
-    }    
+    }
 }
 
 /**
@@ -170,7 +171,7 @@ void _config_set(config* cfg, GHashTable* settings) {
     _config_set_buffer_size(cfg, (char*)g_hash_table_lookup(settings, "BUFFER_SIZE"));
     _config_set_ip(cfg, (char*)g_hash_table_lookup(settings, "IP"));
     _config_set_poll_timeout(cfg, (char*)g_hash_table_lookup(settings, "POLL_TIMEOUT"));
-    //_config_XXX(cfg, (char*)g_hash_table_lookup(settings, "XXX"));
+    _config_set_inactive_timeout(cfg, (char*)g_hash_table_lookup(settings, "INACTIVE"));
     //_config_XXX(cfg, (char*)g_hash_table_lookup(settings, "XXX"));
     //_config_XXX(cfg, (char*)g_hash_table_lookup(settings, "XXX"));
     //_config_XXX(cfg, (char*)g_hash_table_lookup(settings, "XXX"));
@@ -298,6 +299,23 @@ void _config_set_poll_timeout(config* cfg, char* value) {
 }
 
 /**
+ * Sets the timeout when a keep-alive connection should be
+ * closed after having been inactive, if valid.
+ */
+void _config_set_inactive_timeout(config* cfg, char* value) {
+    if (!value) {
+        return;
+    }
+
+    int32_t inact_time = strtoul(value, NULL, 0);
+    if (errno == ERANGE || inact_time <= 0) {
+        return;
+    }
+
+    cfg->inactive_timeout = inact_time;
+}
+
+/**
  * Display the entire configuration.
  */
 void _config_display(config* cfg) {
@@ -315,6 +333,7 @@ void _config_display(config* cfg) {
     fprintf(stdout, "  * IP: %s\n", ip_str);
 
     fprintf(stdout, "  * Poll timeout: %d\n", cfg->poll_timeout);
+    fprintf(stdout, "  * Inactive client timeout: %d\n", cfg->inactive_timeout);
     //fprintf(stdout, "  * ", cfg->);
     
     putchar('\n');
@@ -325,6 +344,5 @@ void _config_display(config* cfg) {
  * Deallocate (deep) the config struct.
  */
 void destroy_config(server* srv) {
-    // <--- Add deeper deallocation if any,,,
     free(srv->cfg);
 }

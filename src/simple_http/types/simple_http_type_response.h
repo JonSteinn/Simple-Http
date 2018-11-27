@@ -11,10 +11,4 @@ typedef struct {
     GString* body;
 } response;
 
-/*GString* create_response(response* res) {
-    GString* r = g_string_new_len("HTTP/1.1 ", 1000);
-
-}*/
-
-
 #endif

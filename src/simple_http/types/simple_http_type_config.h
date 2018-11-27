@@ -12,6 +12,7 @@ typedef struct {
     int32_t     buffer_size;
     int32_t     poll_timeout;
     uint32_t    ip;
+    int32_t     inactive_timeout;
 } config;
 
 #endif

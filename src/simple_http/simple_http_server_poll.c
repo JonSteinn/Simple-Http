@@ -58,10 +58,12 @@ bool existing_client_event(int32_t index, server* srv) {
  * should always be the lowest possible).
  */
 void compress_fds(server* srv) {
-    _compress_fds_from_right_end(srv);
-    _compress_fds_from_left_end(srv);
-    _remove_excessive_fds(srv);    
-    srv->poll->compress = false;
+    if (srv->poll->compress) {
+        _compress_fds_from_right_end(srv);
+        _compress_fds_from_left_end(srv);
+        _remove_excessive_fds(srv);    
+        srv->poll->compress = false;
+    }
 }
 
 /**
@@ -84,6 +86,7 @@ void _compress_fds_from_left_end(server* srv) {
             for(int32_t j = i; j < srv->poll->fds_in_use - 1; j++) {
                 srv->poll->fds[j].fd = srv->poll->fds[j+1].fd;
                 srv->poll->fds[j].revents = srv->poll->fds[j+1].revents;
+                srv->poll->fds[j].events = srv->poll->fds[j+1].events;
             }
             srv->poll->fds_in_use--;
         }

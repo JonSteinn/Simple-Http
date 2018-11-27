@@ -27,6 +27,7 @@ void _config_set_max_clients(config* cfg, char* value);
 void _config_set_buffer_size(config* cfg, char* value);
 void _config_set_ip(config* cfg, char* value);
 void _config_set_poll_timeout(config* cfg, char* value);
+void _config_set_inactive_timeout(config* cfg, char* value);
 // <-------- SETTERS
 void _config_display(config* cfg);
 void destroy_config(server* srv);

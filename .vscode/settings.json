@@ -2,6 +2,7 @@
     "files.associations": {
         "test.h": "c",
         "simple_http_app.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "simple_http_server_config.h": "c"
     }
 }

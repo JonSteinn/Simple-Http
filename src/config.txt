@@ -2,14 +2,12 @@
 DEBUG=true
 
 # What port to use
-PORT=6800
+PORT=7000
 
 # Max size of queue for pending connections
-#MAX_QUEUED=69
 MAX_QUEUED=5
 
 # Max number of clients already connected
-#MAX_CLIENTS=69
 MAX_CLIENTS=4
 
 # Bytes read at a time from request
@@ -19,4 +17,7 @@ BUFFER_SIZE=4096
 IP=127.0.0.1
 
 # No request poll timeout (ms)
-POLL_TIMEOUT=1000
+POLL_TIMEOUT=5000
+
+# How long can connection be open (s)
+INACTIVE=10
