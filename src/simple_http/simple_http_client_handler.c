@@ -1,9 +1,16 @@
 #include "simple_http_client_handler.h"
 
+/**
+ * Initialize the client pool. That is a dictionary that maps a
+ * file descriptor to a client data object.
+ */
 void init_client_pool(server* srv) {
     srv->client_pool = g_hash_table_new_full(g_int_hash, g_int_equal, g_free, _free_client);
 }
 
+/**
+ * Free mechanic for a client in a dictionary.
+ */
 void _free_client(gpointer mem) {
     client* cli = (client*)mem;
     if (cli->raw_request != NULL) {
@@ -12,20 +19,37 @@ void _free_client(gpointer mem) {
     free(cli);
 }
 
+/**
+ * Add a new client to the server's client pool, given that
+ * some client is trying to connect. If there is no room,
+ * we accept his connection but send a default server
+ * unavailable response.
+ */
 void add_new_client(server* srv) {
-    if (srv->poll->fds_in_use == srv->cfg->max_clients + 1) {
-        // TODO: DUMP CLIENT because no room
-        fprintf(stdout, "NO ROOM!\n"); fflush(stdout); // TODO: REMOVE
-        return;
-    }
-    
     client* new_client = _construct_new_client();
     int32_t fd = _accept_connection(srv, new_client);
-    if (fd >= 0) {
+    if (fd < 0) {
+        return;
+    }
+
+    if (true || srv->poll->fds_in_use == srv->cfg->max_clients + 1) {
+        if (srv->cfg->debug) {
+            printf("No room for new client");
+            fflush(stdout);
+        }
+        int32_t status_code = 503;
+        GString* res = (GString*)g_hash_table_lookup(srv->default_response, &status_code);
+        send_g_string(srv, fd, res);
+        _free_client((gpointer)new_client);
+        close(fd);
+    } else {
         _add_client_to_pool(srv, new_client, fd);
     }
 }
 
+/**
+ * Allocate a client object which is returned.
+ */
 client* _construct_new_client() {
     client* new_client = (client*)malloc(sizeof(client));
     new_client->last_active = time(NULL);
@@ -34,27 +58,36 @@ client* _construct_new_client() {
     return new_client;
 }
 
+/**
+ * Try to establish a connection with a client (TCP handshake).
+ * If successful, the file descriptor is returned. Otherwise
+ * -1 is returned.
+ */
 int32_t _accept_connection(server* srv, client* new_client) {
     socklen_t len = (socklen_t)sizeof(struct sockaddr_in);
     int32_t fd = accept(srv->fd, (struct sockaddr*)&new_client->address, &len);
     if (fd < 0) {
         _free_client((gpointer)new_client);
         if (srv->cfg->debug) {
-            fprintf(stdout, "Fail to accept connection!\n");
+            perror("Fail to accept connection!\n");
             fflush(stdout);   
         }
         return -1;
     }
-
     return fd;
 }
 
+/**
+ * Add a client to the client pool.
+ */
 void _add_client_to_pool(server* srv, client* new_client, int32_t fd) {
     srv->poll->fds[srv->poll->fds_in_use].fd = fd;
     srv->poll->fds_in_use++;
     g_hash_table_insert(srv->client_pool, alloc_int(fd), new_client);
 }
 
+
+//TODO: remove and do elsewhere
 void handle_client(server* srv, int32_t index) {
     int fd = srv->poll->fds[index].fd;
     client* cli = g_hash_table_lookup(srv->client_pool, &fd);
@@ -88,6 +121,10 @@ void handle_client(server* srv, int32_t index) {
     }
 }
 
+/**
+ * Check if any of the clients have been inactive for timeout limit,
+ * and if so - remove them.
+ */
 void timeout_clients(server* srv) {
     for (int32_t i = 1; i < srv->poll->fds_in_use; i++) {
         int32_t fd = srv->poll->fds[i].fd;
@@ -103,6 +140,9 @@ void timeout_clients(server* srv) {
     
 }
 
+/**
+ * Remove client from the client pool and close its socket.
+ */
 void _remove_client_from_pool(server* srv, int32_t i, int32_t fd) {
     g_hash_table_remove(srv->client_pool, &fd);
     close(fd);
@@ -111,6 +151,9 @@ void _remove_client_from_pool(server* srv, int32_t i, int32_t fd) {
     srv->poll->compress = true;
 }
 
+/**
+ * Clean up all sockets (except the server's) and clients.
+ */
 void destroy_client_pool(server* srv) {
     g_hash_table_destroy(srv->client_pool);
     for (int32_t i = srv->poll->fds_in_use - 1; i > 0; i--) {

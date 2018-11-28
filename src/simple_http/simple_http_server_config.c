@@ -319,25 +319,24 @@ void _config_set_inactive_timeout(config* cfg, char* value) {
  * Display the entire configuration.
  */
 void _config_display(config* cfg) {
-    fprintf(stdout, "Configuration:\n");
+    printf("Configuration:\n");
 
     // Each field
-    fprintf(stdout, "  * Debug mode: %s\n", cfg->debug ? "True" : "False");
-    fprintf(stdout, "  * Port: %hu\n", cfg->port);
-    fprintf(stdout, "  * Max queued: %d\n", cfg->max_queued);
-    fprintf(stdout, "  * Max clients: %d\n", cfg->max_clients);
-    fprintf(stdout, "  * Buffer size: %d\n", cfg->buffer_size);
+    printf("  * Debug mode: %s\n", cfg->debug ? "True" : "False");
+    printf("  * Port: %hu\n", cfg->port);
+    printf("  * Max queued: %d\n", cfg->max_queued);
+    printf("  * Max clients: %d\n", cfg->max_clients);
+    printf("  * Buffer size: %d\n", cfg->buffer_size);
 
     char ip_str[16];
     inet_ntop(AF_INET, &(cfg->ip), ip_str, INET_ADDRSTRLEN);
-    fprintf(stdout, "  * IP: %s\n", ip_str);
+    printf("  * IP: %s\n", ip_str);
 
-    fprintf(stdout, "  * Poll timeout: %d\n", cfg->poll_timeout);
-    fprintf(stdout, "  * Inactive client timeout: %d\n", cfg->inactive_timeout);
-    //fprintf(stdout, "  * ", cfg->);
+    printf("  * Poll timeout: %d\n", cfg->poll_timeout);
+    printf("  * Inactive client timeout: %d\n", cfg->inactive_timeout);
+    //printf("  * ", cfg->);
     
     putchar('\n');
-    fflush(stdout);
 }
 
 /**

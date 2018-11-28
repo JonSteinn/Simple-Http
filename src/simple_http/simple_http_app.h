@@ -19,4 +19,7 @@ void config_server(server* srv, char* path, int32_t argc, char** argv);
 void start_server(server* srv);
 void destroy_server(server* srv);
 
+// TODO: ADD_PATH
+// TODO: OVERRIDE_DEFAULT_RESPONSE
+
 #endif

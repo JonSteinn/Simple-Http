@@ -17,8 +17,9 @@ POLL = $(PREFIX_NAME)server_poll
 UTIL = $(PREFIX_NAME)util
 CLI_HANDLER = $(PREFIX_NAME)client_handler
 RESPONSE = $(PREFIX_NAME)server_response
+IO = $(PREFIX_NAME)server_io
 # Combination
-DEPENDENCIES = $(APP).o $(CONFIG).o $(SOCKET).o $(POLL).o $(UTIL).o $(CLI_HANDLER).o $(RESPONSE).o
+DEPENDENCIES = $(APP).o $(CONFIG).o $(SOCKET).o $(POLL).o $(UTIL).o $(CLI_HANDLER).o $(RESPONSE).o $(IO).o
 
 # Compile function with required flasg
 define COMPILE
@@ -43,6 +44,7 @@ $(call COMPILE,POLL)
 $(call COMPILE,UTIL)
 $(call COMPILE,CLI_HANDLER)
 $(call COMPILE,RESPONSE)
+$(call COMPILE,IO)
 
 # Removal of .o files
 clean:

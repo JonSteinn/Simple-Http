@@ -59,6 +59,8 @@ bool existing_client_event(int32_t index, server* srv) {
  */
 void compress_fds(server* srv) {
     if (srv->poll->compress) {
+        // TODO: Improve this algorithms
+        /* Two pointers for copying would improve this */
         _compress_fds_from_right_end(srv);
         _compress_fds_from_left_end(srv);
         _remove_excessive_fds(srv);    

@@ -1,16 +1,26 @@
 #include "simple_http_app.h"
 
+// Static global variable for keeping loop running.
 static bool run = true;
+
+/**
+ * Called on ctrl+C event. Sets global run variable to false.
+ */
 static void _int_handler(int32_t sig) {
-    if (sig == SIGINT) run = false;
-    putchar('\n');
+    if (sig == SIGINT) {
+        run = false;
+        printf("\nShutting down\n");
+    }
 }
 
-
+/**
+ * Sets up server. This must be called before adding paths, starting server
+ * and destroying server. It takes a constructed server (who's memory must
+ * be managed by the caller), a path to a config file and the program's args.
+ */
 void config_server(server* srv, char* path, int32_t argc, char** argv) {
     if (!(run = signal(SIGINT, _int_handler) != SIG_ERR)) {
         perror("Error setting signal\n");
-        run = false;
         return;
     }
 
@@ -23,21 +33,68 @@ void config_server(server* srv, char* path, int32_t argc, char** argv) {
     
     srv->buffer = (char*)malloc(sizeof(char) * srv->cfg->buffer_size);
     
-
-
     run = srv->fd != -1;
 }
 
+/**
+ * Starts server. Config must have been called before this function
+ * is called.
+ */
 void start_server(server* srv) {
-    if (srv->cfg->debug) {
+    if (run) {
         char ip_str[16];
         inet_ntop(AF_INET, &(srv->cfg->ip), ip_str, INET_ADDRSTRLEN);
+        ip_str[15] = '\0';
         fprintf(stdout, "Listening on http://%s:%hu (CTRL+C to quit)\n", ip_str, srv->cfg->port);
         fflush(stdout);
     }
 
+    // Server loop
     while(run) {
 
+        if (has_event(srv, &run) && run) {
+            if (new_client_event(srv)) {
+                add_new_client(srv);
+            }
+            for (int32_t i = 1; i < srv->poll->fds_in_use && run; i++) {
+                if (existing_client_event(i, srv)) {
+                    handle_client(srv, i); // <--- don't keep in client handler
+                }
+            }
+        }
+
+        // Cleanup
+        if (run) {
+            timeout_clients(srv);
+            compress_fds(srv);
+        }
+    }
+}
+
+/**
+ * Releases all resources of the server. Note that it does not free 
+ * the server it self. That responsibility falls on the caller.
+ */
+void destroy_server(server* srv) {
+    destroy_config(srv);
+
+    destroy_socket(srv);
+
+    
+    destroy_client_pool(srv);
+
+    // Destroy poll after client pool
+    destroy_poll(srv);
+
+    destroy_default_responses(srv);
+
+    free(srv->buffer);
+}
+
+
+
+/*
+show fd array in loop...
         //##############################
         for (int i = 0; i < srv->cfg->max_clients + 1; i++) {
             if (srv->poll->fds[i].fd < 0) printf("## ");
@@ -47,35 +104,4 @@ void start_server(server* srv) {
         putchar('\n');
         fflush(stdout);
         //##############################
-
-        if (has_event(srv, &run) && run) {
-            if (new_client_event(srv)) {
-                add_new_client(srv);
-            }
-            for (int32_t i = 1; i < srv->poll->fds_in_use && run; i++) {
-                if (existing_client_event(i, srv)) {
-                    handle_client(srv, i);
-                }
-            }
-        }
-
-        if (run) {
-            timeout_clients(srv);
-            compress_fds(srv);
-        }
-    }
-}
-
-void destroy_server(server* srv) {
-    destroy_config(srv);
-
-    destroy_socket(srv);
-
-    destroy_client_pool(srv);
-
-    destroy_poll(srv);
-
-    destroy_default_responses(srv);
-
-    free(srv->buffer);
-}
+*/

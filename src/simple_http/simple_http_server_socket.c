@@ -43,9 +43,32 @@ void _setup_socket(server* srv) {
  * then the server's fd is set to -1.
  */
 void _bind_socket(server* srv) {
-    if (srv->fd > 0 && bind(srv->fd, (struct sockaddr*)&srv->address, (socklen_t)sizeof(struct sockaddr_in)) < 0) {
-        perror("Failed to bind socket!\n");
-        srv->fd = -1;
+    if (srv->fd == -1) {
+        return;
+    }
+
+    // If port is in use, we try the next port up to 5 tries.
+    int32_t tries = 10;
+    while(true) {
+        int32_t bind_results = bind(srv->fd, (struct sockaddr*)&srv->address, (socklen_t)sizeof(struct sockaddr_in));
+        if (bind_results >= 0) {
+            break;
+        } else if (errno == EADDRINUSE) {
+            tries--;
+            if (tries == 0) {
+                srv->fd = -1;
+                break;
+            }
+            srv->cfg->port = (srv->cfg->port + 1) < 1024 ? 1024 : srv->cfg->port + 1;
+            srv->address.sin_port = htons(srv->cfg->port);
+        } else {
+            srv->fd = -1;
+            break;
+        }
+    }
+
+    if (srv->fd < 0) {
+        perror("Failed to bind socket!");
     }
 }
 
@@ -65,11 +88,10 @@ void _listen_on_socket(server* srv) {
  */
 void _socket_display(server* srv) {
     if (srv->fd < 0) {
-        fprintf(stdout, "Error while initializing socket!\n");
+        printf("Error while initializing socket!\n");
     } else {
-        fprintf(stdout, "Socket's fd = %d\n", srv->fd);
+        printf("Socket's fd = %d\n", srv->fd);
     }
-    fflush(stdout);
 }
 
 /**
