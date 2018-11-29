@@ -16,6 +16,8 @@
 #include "types/simple_http_type_server.h"
 #include "simple_http_util.h"
 #include "simple_http_server_io.h"
+#include "simple_http_status_codes.h"
+//#include "simple_http_status_codes.h"
 
 void init_client_pool(server* srv);
 void _free_client(gpointer mem);

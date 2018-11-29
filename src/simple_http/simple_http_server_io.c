@@ -16,3 +16,11 @@ int32_t send_g_string(server* srv, int32_t fd, GString* response) {
 
     return 1;
 }
+
+int32_t send_default(server* srv, int32_t fd, int32_t status_code) {
+    GString* res = (GString*)g_hash_table_lookup(srv->default_response, &status_code);
+    if (res == NULL) {
+        return 0;
+    }
+    return send_g_string(srv, fd, res);
+}

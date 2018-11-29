@@ -37,9 +37,7 @@ void add_new_client(server* srv) {
             printf("No room for new client");
             fflush(stdout);
         }
-        int32_t status_code = 503;
-        GString* res = (GString*)g_hash_table_lookup(srv->default_response, &status_code);
-        send_g_string(srv, fd, res);
+        send_default(srv, fd, status_code.SERVICE_UNAVAILABLE);
         _free_client((gpointer)new_client);
         close(fd);
     } else {
