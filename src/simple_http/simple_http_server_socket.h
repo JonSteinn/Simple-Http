@@ -12,12 +12,12 @@
 #include "types/simple_http_type_config.h"
 #include "types/simple_http_type_server.h"
 
-void init_socket(server* srv);
-void _initialize_address(server* srv);
-void _setup_socket(server* srv);
-void _bind_socket(server* srv);
-void _listen_on_socket(server* srv);
-void _socket_display(server* srv);
-void destroy_socket(server* srv);
+void init_socket(Server* server);
+void _initialize_address(Server* server);
+void _setup_socket(Server* server);
+void _bind_socket(Server* server);
+void _listen_on_socket(Server* server);
+void _socket_display(Server* server);
+void destroy_socket(Server* server);
 
 #endif

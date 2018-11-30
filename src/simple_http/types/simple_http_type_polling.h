@@ -9,6 +9,6 @@ typedef struct {
     struct pollfd*  fds;
     int32_t         fds_in_use;
     bool            compress;
-} polling;
+} Polling;
 
 #endif

@@ -9,6 +9,6 @@ typedef struct {
     GHashTable* headers;
     GHashTable* cookies;
     GString* body;
-} response;
+} Response;
 
 #endif

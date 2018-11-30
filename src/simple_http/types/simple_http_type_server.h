@@ -7,15 +7,19 @@
 
 #include "simple_http_type_config.h"
 #include "simple_http_type_polling.h"
+#include "simple_http_type_response.h"
+#include "simple_http_type_request.h"
 
 typedef struct {
-    config*                 cfg;
-    polling*                poll;
+    Config*                 cfg;
+    Polling*                poll;
     char*                   buffer;
     struct sockaddr_in      address;
     int32_t                 fd;
     GHashTable*             client_pool;
     GHashTable*             default_response;
-} server;
+    Response*               response;
+    Request*                request;
+} Server;
 
 #endif

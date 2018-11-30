@@ -9,6 +9,6 @@ typedef struct {
     time_t              last_active;
     struct sockaddr_in  address;
     GString*            raw_request;
-} client;
+} Client;
 
 #endif

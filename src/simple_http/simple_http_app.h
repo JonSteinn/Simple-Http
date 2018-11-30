@@ -14,10 +14,11 @@
 #include "simple_http_server_poll.h"
 #include "simple_http_client_handler.h"
 #include "simple_http_server_response.h"
+#include "simple_http_client_request.h"
 
-void config_server(server* srv, char* path, int32_t argc, char** argv);
-void start_server(server* srv);
-void destroy_server(server* srv);
+void config_server(Server* server, char* path, int32_t argc, char** argv);
+void start_server(Server* server);
+void destroy_server(Server* server);
 
 // TODO: ADD_PATH
 // TODO: OVERRIDE_DEFAULT_RESPONSE

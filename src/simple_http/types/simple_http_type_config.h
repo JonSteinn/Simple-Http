@@ -13,6 +13,6 @@ typedef struct {
     int32_t     poll_timeout;
     uint32_t    ip;
     int32_t     inactive_timeout;
-} config;
+} Config;
 
 #endif

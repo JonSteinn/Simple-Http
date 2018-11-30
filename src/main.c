@@ -2,13 +2,13 @@
 #include "simple_http/simple_http_app.h"
 
 int32_t main(int32_t argc, char** argv) {
-    server my_server;
-    config_server(&my_server, "./src/config.txt", argc, argv);
+    Server server;
+    config_server(&server, "./src/config.txt", argc, argv);
     
     // Add routes here
 
-    start_server(&my_server);
-    destroy_server(&my_server);
+    start_server(&server);
+    destroy_server(&server);
     return 0;
 }
 
@@ -20,16 +20,12 @@ tZWPInUiHh
 Up6MspZrDp
 wgtEL3FD4V
 ZIlhpZFzQD
-B4Oqf3sHtY
 HfwT8zFjfu
 wlwKdUHzwZ
 E9sYe5WFvi
 TJyiLq9nRs
-RNp03QjYHQ
-aEwe2BLiT2
 Fxjyb5PNWQ
 diYyFKtLgV
-Uva6nmTAHh
 xewauJG3uG
 TJ8l9OzHaM
 MVFyTdJ3Ds

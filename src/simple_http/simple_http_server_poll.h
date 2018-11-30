@@ -11,14 +11,14 @@
 #include "types/simple_http_type_config.h"
 #include "types/simple_http_type_server.h"
 
-void init_poll(server* srv);
-bool has_event(server* srv, bool* run);
-bool new_client_event(server* srv);
-bool existing_client_event(int32_t index, server* srv);
-void compress_fds(server* srv);
-void _compress_fds_from_right_end(server* srv);
-void _compress_fds_from_left_end(server* srv);
-void _remove_excessive_fds(server* srv);
-void destroy_poll(server* srv);
+void init_poll(Server* server);
+bool has_event(Server* server, bool* run);
+bool new_client_event(Server* server);
+bool existing_client_event(int32_t index, Server* server);
+void compress_fds(Server* server);
+void _compress_fds_from_right_end(Server* server);
+void _compress_fds_from_left_end(Server* server);
+void _remove_excessive_fds(Server* server);
+void destroy_poll(Server* server);
 
 #endif

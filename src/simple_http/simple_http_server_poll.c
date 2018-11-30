@@ -3,18 +3,18 @@
 /**
  * Create polling struct for server.
  */
-void init_poll(server* srv) {
-    srv->poll = (polling*)malloc(sizeof(polling));
+void init_poll(Server* server) {
+    server->poll = (Polling*)malloc(sizeof(Polling));
 
-    srv->poll->fds = (struct pollfd*)calloc(srv->cfg->max_clients + 1, sizeof(struct pollfd));
-    for (int32_t i = 0; i <= srv->cfg->max_clients; i++) {
-        srv->poll->fds[i].fd = -1;
-        srv->poll->fds[i].events = POLLIN;
+    server->poll->fds = (struct pollfd*)calloc(server->cfg->max_clients + 1, sizeof(struct pollfd));
+    for (int32_t i = 0; i <= server->cfg->max_clients; i++) {
+        server->poll->fds[i].fd = -1;
+        server->poll->fds[i].events = POLLIN;
     }
-    srv->poll->fds[0].fd = srv->fd;
+    server->poll->fds[0].fd = server->fd;
 
-    srv->poll->compress = false;
-    srv->poll->fds_in_use = 1;
+    server->poll->compress = false;
+    server->poll->fds_in_use = 1;
 
 }
 
@@ -26,8 +26,8 @@ void init_poll(server* srv) {
  * then the run parameter is set to false and false is returned.
  * If a new request occurs we return true but false on timeout.
  */
-bool has_event(server* srv, bool* run) {
-    int32_t p = poll(srv->poll->fds, srv->poll->fds_in_use, srv->cfg->poll_timeout);
+bool has_event(Server* server, bool* run) {
+    int32_t p = poll(server->poll->fds, server->poll->fds_in_use, server->cfg->poll_timeout);
     if (p < 0) {
         if (*run) {
             perror("Poll failed!\n");
@@ -40,16 +40,16 @@ bool has_event(server* srv, bool* run) {
 /**
  * Check if communication is a new client.
  */
-bool new_client_event(server* srv) {
-    return existing_client_event(0, srv);
+bool new_client_event(Server* server) {
+    return existing_client_event(0, server);
 }
 
 /**
  * Check if communication is an existing client number
  * index in the poll->fds array.
  */
-bool existing_client_event(int32_t index, server* srv) {
-    return srv->poll->fds[index].revents & POLLIN;
+bool existing_client_event(int32_t index, Server* server) {
+    return server->poll->fds[index].revents & POLLIN;
 }
 
 /**
@@ -57,23 +57,23 @@ bool existing_client_event(int32_t index, server* srv) {
  * the array in indices 1,2,3,... (the sum of indices used
  * should always be the lowest possible).
  */
-void compress_fds(server* srv) {
-    if (srv->poll->compress) {
+void compress_fds(Server* server) {
+    if (server->poll->compress) {
         // TODO: Improve this algorithms
         /* Two pointers for copying would improve this */
-        _compress_fds_from_right_end(srv);
-        _compress_fds_from_left_end(srv);
-        _remove_excessive_fds(srv);    
-        srv->poll->compress = false;
+        _compress_fds_from_right_end(server);
+        _compress_fds_from_left_end(server);
+        _remove_excessive_fds(server);    
+        server->poll->compress = false;
     }
 }
 
 /**
  * Reduce fds_in_use for any trailing fd that is -1.
  */
-void _compress_fds_from_right_end(server* srv) {
-    while (srv->poll->fds[srv->poll->fds_in_use - 1].fd == -1) {
-        srv->poll->fds_in_use--;
+void _compress_fds_from_right_end(Server* server) {
+    while (server->poll->fds[server->poll->fds_in_use - 1].fd == -1) {
+        server->poll->fds_in_use--;
     }
 }
 
@@ -81,16 +81,16 @@ void _compress_fds_from_right_end(server* srv) {
  * For any -1 in the middle of the array (e.g. excluding ind=0 and the last), we move
  * each of the higher indices one back. 
  */
-void _compress_fds_from_left_end(server* srv) {
-    for (int32_t i = 1; i < srv->poll->fds_in_use - 1; i++) {
+void _compress_fds_from_left_end(Server* server) {
+    for (int32_t i = 1; i < server->poll->fds_in_use - 1; i++) {
         // TODO: Find run of -1's and move by run for each or even beter, memcopy it....
-        if (srv->poll->fds[i].fd == -1) {
-            for(int32_t j = i; j < srv->poll->fds_in_use - 1; j++) {
-                srv->poll->fds[j].fd = srv->poll->fds[j+1].fd;
-                srv->poll->fds[j].revents = srv->poll->fds[j+1].revents;
-                srv->poll->fds[j].events = srv->poll->fds[j+1].events;
+        if (server->poll->fds[i].fd == -1) {
+            for(int32_t j = i; j < server->poll->fds_in_use - 1; j++) {
+                server->poll->fds[j].fd = server->poll->fds[j+1].fd;
+                server->poll->fds[j].revents = server->poll->fds[j+1].revents;
+                server->poll->fds[j].events = server->poll->fds[j+1].events;
             }
-            srv->poll->fds_in_use--;
+            server->poll->fds_in_use--;
         }
     }
 }
@@ -99,9 +99,9 @@ void _compress_fds_from_left_end(server* srv) {
  * If any of the moved indices left a trail of non -1 fds at the
  * right end, they are set to -1 here.
  */
-void _remove_excessive_fds(server* srv) {
-    for (int32_t i = srv->poll->fds_in_use; i < srv->cfg->max_clients + 1 && srv->poll->fds[i].fd != -1; i++) {
-        srv->poll->fds[i].fd = -1;
+void _remove_excessive_fds(Server* server) {
+    for (int32_t i = server->poll->fds_in_use; i < server->cfg->max_clients + 1 && server->poll->fds[i].fd != -1; i++) {
+        server->poll->fds[i].fd = -1;
     }
 }
 
@@ -109,7 +109,7 @@ void _remove_excessive_fds(server* srv) {
  * Realease resources for polling struct. It handles
  * freeing any deep memory allocated by the initializer.
  */
-void destroy_poll(server* srv) {
-    free(srv->poll->fds);
-    free(srv->poll);
+void destroy_poll(Server* server) {
+    free(server->poll->fds);
+    free(server->poll);
 }

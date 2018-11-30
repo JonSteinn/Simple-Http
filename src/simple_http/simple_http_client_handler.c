@@ -4,19 +4,17 @@
  * Initialize the client pool. That is a dictionary that maps a
  * file descriptor to a client data object.
  */
-void init_client_pool(server* srv) {
-    srv->client_pool = g_hash_table_new_full(g_int_hash, g_int_equal, g_free, _free_client);
+void init_client_pool(Server* server) {
+    server->client_pool = g_hash_table_new_full(g_int_hash, g_int_equal, g_free, _free_client);
 }
 
 /**
  * Free mechanic for a client in a dictionary.
  */
 void _free_client(gpointer mem) {
-    client* cli = (client*)mem;
-    if (cli->raw_request != NULL) {
-        g_string_free(cli->raw_request, true);
-    }
-    free(cli);
+    Client* client = (Client*)mem;
+    g_string_free(client->raw_request, true);
+    free(client);
 }
 
 /**
@@ -25,35 +23,35 @@ void _free_client(gpointer mem) {
  * we accept his connection but send a default server
  * unavailable response.
  */
-void add_new_client(server* srv) {
-    client* new_client = _construct_new_client();
-    int32_t fd = _accept_connection(srv, new_client);
+void add_new_client(Server* server) {
+    Client* new_client = _construct_new_client(server);
+    int32_t fd = _accept_connection(server, new_client);
     
     if (fd < 0) {
         return;
     }
 
-    if (srv->poll->fds_in_use == srv->cfg->max_clients + 1) {
-        if (srv->cfg->debug) {
+    if (server->poll->fds_in_use == server->cfg->max_clients + 1) {
+        if (server->cfg->debug) {
             printf("No room for new client");
             fflush(stdout);
         }
-        send_default(srv, fd, status_code.SERVICE_UNAVAILABLE);
+        send_default(server, fd, status_code.SERVICE_UNAVAILABLE);
         _free_client((gpointer)new_client);
         close(fd);
     } else {
-        _add_client_to_pool(srv, new_client, fd);
+        _add_client_to_pool(server, new_client, fd);
     }
 }
 
 /**
  * Allocate a client object which is returned.
  */
-client* _construct_new_client() {
-    client* new_client = (client*)malloc(sizeof(client));
+Client* _construct_new_client(Server* server) {
+    Client* new_client = (Client*)malloc(sizeof(Client));
     new_client->last_active = time(NULL);
     memset(&new_client->address, 0, sizeof(struct sockaddr_in));
-    new_client->raw_request = NULL;
+    new_client->raw_request = g_string_new_len(NULL, server->cfg->buffer_size);
     return new_client;
 }
 
@@ -62,12 +60,12 @@ client* _construct_new_client() {
  * If successful, the file descriptor is returned. Otherwise
  * -1 is returned.
  */
-int32_t _accept_connection(server* srv, client* new_client) {
+int32_t _accept_connection(Server* server, Client* client) {
     socklen_t len = (socklen_t)sizeof(struct sockaddr_in);
-    int32_t fd = accept(srv->fd, (struct sockaddr*)&new_client->address, &len);
+    int32_t fd = accept(server->fd, (struct sockaddr*)&client->address, &len);
     if (fd < 0) {
-        _free_client((gpointer)new_client);
-        if (srv->cfg->debug) {
+        _free_client((gpointer)client);
+        if (server->cfg->debug) {
             perror("Fail to accept connection!\n");
             fflush(stdout);   
         }
@@ -79,60 +77,25 @@ int32_t _accept_connection(server* srv, client* new_client) {
 /**
  * Add a client to the client pool.
  */
-void _add_client_to_pool(server* srv, client* new_client, int32_t fd) {
-    srv->poll->fds[srv->poll->fds_in_use].fd = fd;
-    srv->poll->fds_in_use++;
-    g_hash_table_insert(srv->client_pool, alloc_int(fd), new_client);
-}
-
-
-//TODO: remove and do elsewhere
-void handle_client(server* srv, int32_t index) {
-    int fd = srv->poll->fds[index].fd;
-    client* cli = g_hash_table_lookup(srv->client_pool, &fd);
-    if (cli == NULL) {
-        // TODO: handle not found
-        perror("CLIENT NOT FOUND!");
-        exit(1);
-    }
-    
-    if (cli->raw_request == NULL) {
-        cli->raw_request = g_string_new_len(NULL, srv->cfg->buffer_size);
-    }
-
-    // TODO: replace with timeout mechanic wrapped around recv
-    ssize_t received = recv(fd, srv->buffer, srv->cfg->buffer_size - 1, 0);
-
-    if (received <= 0) {
-        perror("error from recv\n");
-        exit(1);
-        //TODO: handle better and handle =0 seperately
-    }
-
-    srv->buffer[received] = '\0';
-    g_string_append(cli->raw_request, srv->buffer);
-
-    bool lastData = recv(fd, srv->buffer, 1, MSG_PEEK | MSG_DONTWAIT) != 1;
-    if (lastData) {
-        printf("%s\n", cli->raw_request->str);
-        g_string_truncate(cli->raw_request, 0);
-        send(fd, "HTTP/1.1 200 Ok\r\nContent-Type: text/html\r\nContent-Length: 56\r\n\r\n<html><head><title>A</title></head><body>B</body></html>", 128, 0);
-    }
+void _add_client_to_pool(Server* server, Client* client, int32_t fd) {
+    server->poll->fds[server->poll->fds_in_use].fd = fd;
+    server->poll->fds_in_use++;
+    g_hash_table_insert(server->client_pool, alloc_int(fd), client);
 }
 
 /**
  * Check if any of the clients have been inactive for timeout limit,
  * and if so - remove them.
  */
-void timeout_clients(server* srv) {
-    for (int32_t i = 1; i < srv->poll->fds_in_use; i++) {
-        int32_t fd = srv->poll->fds[i].fd;
+void timeout_clients(Server* server) {
+    for (int32_t i = 1; i < server->poll->fds_in_use; i++) {
+        int32_t fd = server->poll->fds[i].fd;
         if (fd >= 0) {
             time_t now = time(NULL);
-            time_t last = ((client*)g_hash_table_lookup(srv->client_pool, &fd))->last_active;
+            time_t last = ((Client*)g_hash_table_lookup(server->client_pool, &fd))->last_active;
 
-            if (difftime(now, last) >= srv->cfg->inactive_timeout) {
-                _remove_client_from_pool(srv, i, fd);
+            if (difftime(now, last) >= server->cfg->inactive_timeout) {
+                remove_client_from_pool(server, i, fd);
             }
         }
     }
@@ -142,20 +105,20 @@ void timeout_clients(server* srv) {
 /**
  * Remove client from the client pool and close its socket.
  */
-void _remove_client_from_pool(server* srv, int32_t i, int32_t fd) {
-    g_hash_table_remove(srv->client_pool, &fd);
+void remove_client_from_pool(Server* server, int32_t index, int32_t fd) {
+    g_hash_table_remove(server->client_pool, &fd);
     close(fd);
-    srv->poll->fds[i].fd = -1;
-    srv->poll->fds[i].revents = 0;
-    srv->poll->compress = true;
+    server->poll->fds[index].fd = -1;
+    server->poll->fds[index].revents = 0;
+    server->poll->compress = true;
 }
 
 /**
  * Clean up all sockets (except the server's) and clients.
  */
-void destroy_client_pool(server* srv) {
-    g_hash_table_destroy(srv->client_pool);
-    for (int32_t i = srv->poll->fds_in_use - 1; i > 0; i--) {
-        close(srv->poll->fds[i].fd);
+void destroy_client_pool(Server* server) {
+    g_hash_table_destroy(server->client_pool);
+    for (int32_t i = server->poll->fds_in_use - 1; i > 0; i--) {
+        close(server->poll->fds[i].fd);
     }
 }

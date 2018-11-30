@@ -8,26 +8,26 @@
  * This config struc needs to be deallocated with destroy 
  * function by the caller.
  */
-void init_config(server* srv, char* path, int32_t argc, char** argv) {
-    srv->cfg = (config*)malloc(sizeof(config));
+void init_config(Server* server, char* path, int32_t argc, char** argv) {
+    server->cfg = (Config*)malloc(sizeof(Config));
     GHashTable* settings = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
-    _config_set_default(srv->cfg);
+    _config_set_default(server->cfg);
     _config_set_from_file(settings, path);
     _config_set_from_args(settings, argc, argv);
-    _config_set(srv->cfg, settings);
+    _config_set(server->cfg, settings);
     
     g_hash_table_destroy(settings);
 
-    if (srv->cfg->debug) {
-        _config_display(srv->cfg);
+    if (server->cfg->debug) {
+        _config_display(server->cfg);
     }
 }
 
 /**
  * Sets fields of config struct to their default values.
  */
-void _config_set_default(config* cfg) {
+void _config_set_default(Config* cfg) {
     cfg->debug = false;
     cfg->port = 8080;
     cfg->max_queued = 100;
@@ -163,7 +163,7 @@ void _config_set_from_args(GHashTable* settings, int32_t argc, char** argv) {
  * NULL is passed to the set function.
  * 
  */
-void _config_set(config* cfg, GHashTable* settings) {
+void _config_set(Config* cfg, GHashTable* settings) {
     _config_set_debug(cfg, (char*)g_hash_table_lookup(settings, "DEBUG"));
     _config_set_port(cfg, (char*)g_hash_table_lookup(settings, "PORT"));
     _config_set_max_queued(cfg, (char*)g_hash_table_lookup(settings, "MAX_QUEUED"));
@@ -182,7 +182,7 @@ void _config_set(config* cfg, GHashTable* settings) {
  * Sets debug to the value in the dictionary. Does nothing if
  * value is NULL.
  */
-void _config_set_debug(config* cfg, char* value) {
+void _config_set_debug(Config* cfg, char* value) {
     if (!value) {
         return;
     }
@@ -195,7 +195,7 @@ void _config_set_debug(config* cfg, char* value) {
  * large or a well known port, we do not set the port (and it stays as the 
  * default value). Does nothing if value is NULL.
  */
-void _config_set_port(config* cfg, char* value) {
+void _config_set_port(Config* cfg, char* value) {
     if (!value) {
         return;
     }
@@ -216,7 +216,7 @@ void _config_set_port(config* cfg, char* value) {
  * 32 bit integer is considered valid. If invalid or value is NULL, then
  * nothing gets done.
  */
-void _config_set_max_queued(config* cfg, char* value) {
+void _config_set_max_queued(Config* cfg, char* value) {
     if (!value) {
         return;
     }
@@ -234,7 +234,7 @@ void _config_set_max_queued(config* cfg, char* value) {
  * 32 bit integer is considered valid. If invalid or value is NULL, then
  * nothing gets done.
  */
-void _config_set_max_clients(config* cfg, char* value) {
+void _config_set_max_clients(Config* cfg, char* value) {
     if (!value) {
         return;
     }
@@ -253,7 +253,7 @@ void _config_set_max_clients(config* cfg, char* value) {
  * nothing is done. A valid buffer size is a positive, equal or greater
  * than 4096. 
  */
-void _config_set_buffer_size(config* cfg, char* value) {
+void _config_set_buffer_size(Config* cfg, char* value) {
     if (!value) {
         return;
     }
@@ -270,7 +270,7 @@ void _config_set_buffer_size(config* cfg, char* value) {
  * Sets ip address to value in the dictionary if valid. Otherwise
  * nothing is done.
  */
-void _config_set_ip(config* cfg, char* value) {
+void _config_set_ip(Config* cfg, char* value) {
     if (!value) {
         return;
     }
@@ -285,7 +285,7 @@ void _config_set_ip(config* cfg, char* value) {
  * Sets the timeout for returing from poll when no
  * events occur, if valid. A non-positive time is invalid.
  */
-void _config_set_poll_timeout(config* cfg, char* value) {
+void _config_set_poll_timeout(Config* cfg, char* value) {
     if (!value) {
         return;
     }
@@ -302,7 +302,7 @@ void _config_set_poll_timeout(config* cfg, char* value) {
  * Sets the timeout when a keep-alive connection should be
  * closed after having been inactive, if valid.
  */
-void _config_set_inactive_timeout(config* cfg, char* value) {
+void _config_set_inactive_timeout(Config* cfg, char* value) {
     if (!value) {
         return;
     }
@@ -318,7 +318,7 @@ void _config_set_inactive_timeout(config* cfg, char* value) {
 /**
  * Display the entire configuration.
  */
-void _config_display(config* cfg) {
+void _config_display(Config* cfg) {
     printf("Configuration:\n");
 
     // Each field
@@ -342,6 +342,6 @@ void _config_display(config* cfg) {
 /**
  * Deallocate (deep) the config struct.
  */
-void destroy_config(server* srv) {
-    free(srv->cfg);
+void destroy_config(Server* server) {
+    free(server->cfg);
 }

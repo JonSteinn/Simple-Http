@@ -4,7 +4,8 @@
         "simple_http_app.h": "c",
         "stdlib.h": "c",
         "simple_http_server_config.h": "c",
-        "simple_http_server_response.h": "c"
-    },
-    "python.pythonPath": "/usr/bin/python3"
+        "simple_http_server_response.h": "c",
+        "time.h": "c",
+        "simple_http_type_request.h": "c"
+    }
 }
