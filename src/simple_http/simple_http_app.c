@@ -33,6 +33,9 @@ void config_server(server* srv, char* path, int32_t argc, char** argv) {
     
     srv->buffer = (char*)malloc(sizeof(char) * srv->cfg->buffer_size);
     
+
+
+
     run = srv->fd != -1;
 }
 
@@ -59,6 +62,20 @@ void start_server(server* srv) {
             for (int32_t i = 1; i < srv->poll->fds_in_use && run; i++) {
                 if (existing_client_event(i, srv)) {
                     handle_client(srv, i); // <--- don't keep in client handler
+
+                    // RECV next buffer size at most
+                    //
+                    // Then
+                    // 
+                    // If error or 0-term from client 
+                    //      => remove and close
+                    // Else if Done
+                    //      => Parse request
+                    //      => Check if path+meth exists
+                    //      => call user method to construct response
+                    //      => send response
+                    // ELSE
+                    //      => Do nothing
                 }
             }
         }
@@ -76,6 +93,7 @@ void start_server(server* srv) {
  * the server it self. That responsibility falls on the caller.
  */
 void destroy_server(server* srv) {
+
     destroy_config(srv);
 
     destroy_socket(srv);

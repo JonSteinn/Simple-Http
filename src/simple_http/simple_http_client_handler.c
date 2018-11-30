@@ -28,11 +28,12 @@ void _free_client(gpointer mem) {
 void add_new_client(server* srv) {
     client* new_client = _construct_new_client();
     int32_t fd = _accept_connection(srv, new_client);
+    
     if (fd < 0) {
         return;
     }
 
-    if (true || srv->poll->fds_in_use == srv->cfg->max_clients + 1) {
+    if (srv->poll->fds_in_use == srv->cfg->max_clients + 1) {
         if (srv->cfg->debug) {
             printf("No room for new client");
             fflush(stdout);
