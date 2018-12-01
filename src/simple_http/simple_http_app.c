@@ -71,17 +71,42 @@ void start_server(Server* server) {
                     if (recv_from_client_successs(server, fd, client, &transfer_complete)) {
                         if (transfer_complete) {
 
+
+
                             if (!parse_request(server, client->raw_request)) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
                             }
-
 
                             //      => Check if path+meth exists
                             //      => call user method to construct response
                             //      => send response
 
-                            else { send_default(server, fd, 200); } // <<---- remove 
+                            else { 
+                                send_default(server, fd, 200); 
+                            
 
+                                /*void printyprint(gpointer k, gpointer v, gpointer d) {
+                                    (void)d;
+                                    printf("%s -> %s\n", (char*)k, (char*)v);
+                                }
+                                printf("\n\n%s\n---------------------\n", "COOKIES");
+                                g_hash_table_foreach(server->request->cookies, printyprint, NULL);
+                                printf("\n\n%s\n---------------------\n", "HEADERS");
+                                g_hash_table_foreach(server->request->headers, printyprint, NULL);
+                                printf("\n\n%s\n---------------------\n", "QUERIES");
+                                g_hash_table_foreach(server->request->queries, printyprint, NULL);
+                                printf("\n\n%s\n---------------------\n%s\n", "BODY", server->request->body->str);
+                                printf("\n\n%s\n---------------------\n%s\n", "FRAG", server->request->fragment->str);
+                                printf("\n\n%s\n---------------------\n%s\n", "PATH", server->request->path->str);
+                                printf("\n\n%s\n---------------------\n%d\n", "VERS", server->request->version);
+                                printf("\n\n%s\n---------------------\n%d\n", "METH", server->request->method);*/
+
+                            
+                            } // <<---- remove 
+
+
+
+                            g_string_truncate(client->raw_request, 0);
                             restart_request(server);
                             restart_response(server);
                         }

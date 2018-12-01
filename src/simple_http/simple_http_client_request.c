@@ -75,23 +75,23 @@ bool _parse_start_line(Server* server, char* line) {
 }
 
 bool _set_http_method(Server* server, char* method) {
-    if (g_ascii_strncasecmp("GET", method, 3)) {
+    if (!g_ascii_strncasecmp("GET", method, 3)) {
         server->request->method = METHOD_GET;
-    } else if (g_ascii_strncasecmp("HEAD", method, 4)) {
+    } else if (!g_ascii_strncasecmp("HEAD", method, 4)) {
         server->request->method = METHOD_HEAD;
-    } else if (g_ascii_strncasecmp("POST", method, 4)) {
+    } else if (!g_ascii_strncasecmp("POST", method, 4)) {
         server->request->method = METHOD_POST;
-    } else if (g_ascii_strncasecmp("PUT", method, 3)) {
+    } else if (!g_ascii_strncasecmp("PUT", method, 3)) {
         server->request->method = METHOD_PUT;
-    } else if (g_ascii_strncasecmp("DELETE", method, 6)) {
+    } else if (!g_ascii_strncasecmp("DELETE", method, 6)) {
         server->request->method = METHOD_DELETE;
-    } else if (g_ascii_strncasecmp("CONNECTION", method, 10)) {
+    } else if (!g_ascii_strncasecmp("CONNECTION", method, 10)) {
         server->request->method = METHOD_CONNECTION;
-    } else if (g_ascii_strncasecmp("OPTIONS", method, 7)) {
+    } else if (!g_ascii_strncasecmp("OPTIONS", method, 7)) {
         server->request->method = METHOD_OPTIONS;
-    } else if (g_ascii_strncasecmp("TRACE", method, 5)) {
+    } else if (!g_ascii_strncasecmp("TRACE", method, 5)) {
         server->request->method = METHOD_TRACE;
-    } else if (g_ascii_strncasecmp("PATCH", method, 5)) {
+    } else if (!g_ascii_strncasecmp("PATCH", method, 5)) {
         server->request->method = METHOD_PATCH;
     } else {
         return false;
@@ -148,11 +148,11 @@ bool _parse_url(Server* server, char* url) {
 }
 
 bool _set_http_version(Server* server, char* version) {
-    if (g_ascii_strncasecmp("HTTP/1.0", version, 8)) {
+    if (!g_ascii_strncasecmp("HTTP/1.0", version, 8)) {
         server->request->version = VERSION_10;
-    } else if (g_ascii_strncasecmp("HTTP/1.1", version, 8)) {
+    } else if (!g_ascii_strncasecmp("HTTP/1.1", version, 8)) {
         server->request->version = VERSION_11;
-    } else if (g_ascii_strncasecmp("HTTP/2.0", version, 8)) {
+    } else if (!g_ascii_strncasecmp("HTTP/2.0", version, 8)) {
         server->request->version = VERSION_20;
     } else {
         return false;
@@ -179,7 +179,7 @@ void _parse_headers(Server* server, char** lines) {
     for (int32_t i = 1; lines[i] != NULL; i++) {
         char** header = g_strsplit(lines[i], ": ", 2);
         if (header[0] != NULL && header[0][0] != '\0' && header[1] != NULL && header[1][0] != '\0') {
-            if (g_ascii_strncasecmp("Cookie", header[0], 6)) {
+            if (!g_ascii_strncasecmp("Cookie", header[0], 6)) {
                 _parse_cookie(server, header[1]);
             } else {
                 g_hash_table_insert(server->request->headers, g_strdup(header[0]), g_strdup(header[1]));

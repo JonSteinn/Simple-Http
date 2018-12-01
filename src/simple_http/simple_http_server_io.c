@@ -32,6 +32,7 @@ bool recv_from_client_successs(Server* server, int32_t fd, Client* client, bool*
     }
     server->buffer[received] = '\0';
     g_string_append(client->raw_request, server->buffer);
-    *complete = recv(fd, server->buffer, 1, MSG_PEEK | MSG_DONTWAIT) != 1;
+    *complete = received < server->cfg->buffer_size - 1 || 
+                recv(fd, server->buffer, 1, MSG_PEEK | MSG_DONTWAIT) != 1;
     return true;
 }
