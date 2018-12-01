@@ -70,11 +70,21 @@ void start_server(Server* server) {
 
                     if (recv_from_client_successs(server, fd, client, &transfer_complete)) {
                         if (transfer_complete) {
-                            send_default(server, fd, 200);
+
+                            if (!parse_request(server, client->raw_request)) {
+                                send_default(server, fd, status_code.BAD_REQUEST);
+                            }
                             //      => Parse request
                             //      => Check if path+meth exists
                             //      => call user method to construct response
                             //      => send response
+
+
+
+                            else { send_default(server, fd, 200); } // <<---- remove 
+
+                            restart_request(server);
+                            restart_response(server);
                         }
                     } else {
                         remove_client_from_pool(server, i, fd);   

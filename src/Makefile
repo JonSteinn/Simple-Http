@@ -21,7 +21,17 @@ IO = $(PREFIX_NAME)server_io
 S_CODE = $(PREFIX_NAME)status_codes
 REQUEST = $(PREFIX_NAME)client_request
 # Combination
-DEPENDENCIES = $(APP).o $(CONFIG).o $(SOCKET).o $(POLL).o $(UTIL).o $(CLI_HANDLER).o $(RESPONSE).o $(IO).o $(S_CODE).o $(REQUEST).o
+DEPENDENCIES = \
+	$(APP).o \
+	$(CONFIG).o \
+	$(SOCKET).o \
+	$(POLL).o \
+	$(UTIL).o \
+	$(CLI_HANDLER).o \
+	$(RESPONSE).o \
+	$(IO).o \
+	$(S_CODE).o \
+	$(REQUEST).o
 
 # Compile function with required flasg
 define COMPILE
