@@ -4,11 +4,14 @@
 #include <stdint.h>
 #include <glib.h>
 
+/**
+ * 
+ */
 typedef struct {
-    int32_t status_code;
-    GHashTable* headers;
-    GHashTable* cookies;
-    GString* body;
+    int32_t         status_code;
+    GHashTable*     headers;
+    GHashTable*     cookies;
+    GString*        body;
 } Response;
 
 #endif

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "simple_http/simple_http_app.h"
 
+
 int32_t main(int32_t argc, char** argv) {
     Server server;
     config_server(&server, "./src/config.txt", argc, argv);

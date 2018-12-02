@@ -1,6 +1,9 @@
 #ifndef aEwe2BLiT2_SIMPLE_HTTP_TYPE_METHOD_H
 #define aEwe2BLiT2_SIMPLE_HTTP_TYPE_METHOD_H
 
+/**
+ * 
+ */
 typedef enum {
     METHOD_GET,
     METHOD_HEAD,

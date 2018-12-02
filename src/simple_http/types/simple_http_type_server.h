@@ -10,6 +10,9 @@
 #include "simple_http_type_response.h"
 #include "simple_http_type_request.h"
 
+/**
+ * 
+ */
 typedef struct {
     Config*                 cfg;
     Polling*                poll;

@@ -39,6 +39,7 @@ bool parse_request(Server* server, GString* raw_request) {
     char** empty_line_split = g_strsplit(raw_request->str, "\r\n\r\n", 2);
     if (!empty_line_split[0] || empty_line_split[0][0] == '\0' || !empty_line_split[1]) {
         g_strfreev(empty_line_split);
+        g_string_truncate(raw_request, 0);
         return false;
     }
 
@@ -55,7 +56,7 @@ bool parse_request(Server* server, GString* raw_request) {
 
     g_strfreev(lines);
     g_strfreev(empty_line_split);
-
+    g_string_truncate(raw_request, 0);
     return true;
 }
 

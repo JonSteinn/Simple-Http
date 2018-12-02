@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include <sys/poll.h>
 
+/**
+ * 
+ */
 typedef struct {
     struct pollfd*  fds;
     int32_t         fds_in_use;
