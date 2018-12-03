@@ -6,6 +6,7 @@
 
 /**
  * A collection of various configuration variables.
+ * 
  *  debug
  *      Display additional info in stdout
  *  port
@@ -19,7 +20,7 @@
  *      The size + 1 of the chunk read at a time
  *      from clients
  *  poll_timeout
- *      How long before poll returns without events.
+ *      How long before poll returns without events
  *  ip
  *      IP for the server (<protocol>://<ip>:<port>/<url>)
  *  inactive_timeout

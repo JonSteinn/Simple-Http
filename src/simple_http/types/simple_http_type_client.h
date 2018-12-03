@@ -7,6 +7,7 @@
 
 /**
  * Data structure for client.
+ * 
  *  last_active
  *      The last time the client did 
  *  address
