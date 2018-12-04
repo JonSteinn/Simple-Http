@@ -6,4 +6,5 @@
   - URL parameters
   - Global response header settings (headers for all response...)
   - Customize default responses
+  - Logging
   - Write readme

@@ -1,3 +1,11 @@
+/*************************************************************
+ * Written by: Jón Steinn Elíasson                           *
+ *                                                           *
+ * Handlees anything related to the client pool.             *
+ * Initializing and destroying the client pool, adding new   *
+ * clients, TCP handshake, timeout clients removing clients. *
+ *************************************************************/
+
 #ifndef kRBTqiq4rm_SIMPLE_HTTP_CLIENT_HANDLER_H
 #define kRBTqiq4rm_SIMPLE_HTTP_CLIENT_HANDLER_H
 
@@ -20,8 +28,8 @@
 
 void init_client_pool(Server* srv);
 void _free_client(gpointer mem);
-void add_new_client(Server* srv);
 
+void add_new_client(Server* srv);
 Client* _construct_new_client(Server* srv);
 int32_t _accept_connection(Server* srv, Client* client);
 void _add_client_to_pool(Server* srv, Client* client, int32_t fd);

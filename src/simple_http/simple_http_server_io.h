@@ -1,3 +1,9 @@
+/*************************************************************
+ * Written by: Jón Steinn Elíasson                           *
+ *                                                           *
+ * Handles sending and recieving over sockets.               *
+ *************************************************************/
+
 #ifndef UnNdvSL5YU_SIMPLE_HTTP_SERVER_IO_H
 #define UnNdvSL5YU_SIMPLE_HTTP_SERVER_IO_H
 
@@ -17,8 +23,8 @@
 void init_io(Server* server);
 void destroy_io(Server* server);
 
-int32_t send_g_string(Server* server, int32_t fd, GString* respsone);
-int32_t send_default(Server* server, int32_t fd, int32_t status_code);
+bool send_g_string(Server* server, int32_t fd, GString* respsone);
+bool send_default(Server* server, int32_t fd, int32_t status_code);
 
 bool recv_from_client_successs(Server* server, int32_t fd, Client* client, bool* complete);
 
