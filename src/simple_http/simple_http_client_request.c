@@ -1,6 +1,10 @@
 #include "simple_http_client_request.h"
 
-
+/**
+ * Initialize the single request object that the server
+ * holds. This requires a call of destroy_request to
+ * free the memory allocted in this function.
+ */
 void init_request(Server* server) {
     server->request = (Request*)malloc(sizeof(Request));
 
@@ -14,6 +18,9 @@ void init_request(Server* server) {
     server->request->body = g_string_new(NULL);
 }
 
+/**
+ * Resets the request after it has been used.
+ */
 void restart_request(Server* server) {
     server->request->version = VERSION_11;
     server->request->method = METHOD_GET;
@@ -25,6 +32,9 @@ void restart_request(Server* server) {
     g_string_truncate(server->request->body, 0);
 }
 
+/**
+ * De-allocate the memory for the server's request object.
+ */
 void destroy_request(Server* server) {
     g_hash_table_destroy(server->request->queries);
     g_hash_table_destroy(server->request->headers);
@@ -35,34 +45,51 @@ void destroy_request(Server* server) {
     free(server->request);
 }
 
+/**
+ * Try to parse a raw string from a client into a request object.
+ * If successful, true is returned, othwerise false.
+ */
 bool parse_request(Server* server, GString* raw_request) {
     char** empty_line_split = g_strsplit(raw_request->str, "\r\n\r\n", 2);
+
+    // If missing start line or no occurrence of "\r\n\r\n"
     if (!empty_line_split[0] || empty_line_split[0][0] == '\0' || !empty_line_split[1]) {
         g_strfreev(empty_line_split);
         g_string_truncate(raw_request, 0);
         return false;
     }
 
+    // Start line + headers
     char** lines = g_strsplit(empty_line_split[0], "\r\n", -1);
-
-    bool valid = _parse_start_line(server, lines[0]);
     
-    if (valid) {
+    bool start_line_is_valid = _parse_start_line(server, lines[0]);
+    
+    if (start_line_is_valid) {
         _parse_headers(server, lines);
+
+        // If contains a body
         if (empty_line_split[1][0] != '\0') {
             g_string_append(server->request->body, empty_line_split[1]);
         }
     }
 
+    // Free resources and clear raw_request
     g_strfreev(lines);
     g_strfreev(empty_line_split);
     g_string_truncate(raw_request, 0);
+
     return true;
 }
 
+/**
+ * Parse the start line. It should contain method, url and version,
+ * in that order and seperated by a whitespace. If the startline is
+ * valid we return true, otherwise false.
+ */
 bool _parse_start_line(Server* server, char* line) {
     char** start_line = g_strsplit(line, " ", 3);    
 
+    // If contain three non-empty words and each word can be parsed.
     bool valid = start_line[0] != NULL && start_line[0][0] != '\0' &&
                  start_line[1] != NULL && start_line[1][0] != '\0' &&
                  start_line[2] != NULL && start_line[2][0] != '\0' &&
@@ -75,6 +102,11 @@ bool _parse_start_line(Server* server, char* line) {
     return valid;
 }
 
+/**
+ * If method matches a valid http method, we set
+ * the request method to the corresponding enum
+ * and return true. Otherwise false is returned.
+ */
 bool _set_http_method(Server* server, char* method) {
     if (!g_ascii_strncasecmp("GET", method, 3)) {
         server->request->method = METHOD_GET;
@@ -97,30 +129,52 @@ bool _set_http_method(Server* server, char* method) {
     } else {
         return false;
     }
-
     return true;
 }
 
+/**
+ * Parse url and return true if valid, otherwise false.
+ * The url may not contain '{', '}', '|', '\', '^', '[', 
+ * ']', '`', '<', '>'. It can (optionally) have both a
+ * query string (after ?) and/or fragment (after #).
+ * The query string is parsed as well.
+ */
 bool _parse_url(Server* server, char* url) {
     char** first_split = NULL;
     char** second_split = NULL;
-
     first_split = g_strsplit(url, "?", 2);
+
+
     if (first_split[1] == NULL) {
-        // Has no query
+        // If url has no query:
+        // Option i:  <path>#<fragment>
+        // Option ii: <path>
+
+        // split into <path> and <fragment>
         second_split = g_strsplit(url, "#", 2);
         g_string_append(server->request->path, second_split[0]);
+        
+        // If option i and the fragment is not the empty word.
         if (second_split[1] != NULL && second_split[1][0] != '\0') {
             g_string_append(server->request->fragment, second_split[1]);
         }
     } else {
-        // Has query
+        // If url has query
+        // Option i:  <path>?<queries>#<fragment>
+        // Option ii: <path>?<queries>
+
+        // We already have the path in the first split
         g_string_append(server->request->path, first_split[0]);
+
+        // Split remaining (string after ?) into <queries> and <fragment>
         second_split = g_strsplit(first_split[1], "#", 2);
+
         if (second_split[0][0] != '\0') {
+            // if queries is not the empty word
             _parse_queries(server, second_split[0]);
         }
         if (second_split[1] != NULL && second_split[1][0] != '\0') {
+            // If the fragment exist and is not the empty word
             g_string_append(server->request->fragment, second_split[1]);
         }
     }
@@ -128,7 +182,7 @@ bool _parse_url(Server* server, char* url) {
     g_strfreev(first_split);
     g_strfreev(second_split);
 
-    // {, }, |, \, ^, [, ], `, <, >
+    // Check for: {, }, |, \, ^, [, ], `, <, >
     for (size_t i = 0; i < server->request->path->len; i++) {
         if (server->request->path->str[i] == '}' ||
             server->request->path->str[i] == '{' ||
@@ -144,10 +198,14 @@ bool _parse_url(Server* server, char* url) {
         }
     }
 
-    // TODO: validate url ? 
     return true;
 }
 
+/**
+ * See if version matches the valid htpp versions and if so
+ * set the version of the request and return true, otherwise
+ * false is returned.
+ */
 bool _set_http_version(Server* server, char* version) {
     if (!g_ascii_strncasecmp("HTTP/1.0", version, 8)) {
         server->request->version = VERSION_10;
@@ -162,8 +220,11 @@ bool _set_http_version(Server* server, char* version) {
     return true;
 }
 
-
-
+/**
+ * Parse queries into a dictionary. The queries must be
+ * seperated by a '&' and each query must consist of a
+ * key and value seperated by a '='.
+ */
 void _parse_queries(Server* server, char* query_string) {
     char** queries = g_strsplit(query_string, "&", -1);
     for (int32_t i = 0; queries[i] != NULL; i++) {
@@ -176,6 +237,12 @@ void _parse_queries(Server* server, char* query_string) {
     g_strfreev(queries);
 }
 
+/**
+ * Parse headers. A single header must be within its own line.
+ * It must be of the form "<key>: <value>\r\n". Any header
+ * with the key "Cookie" placed elsewhere (then the request's
+ * header dictionary).
+ */
 void _parse_headers(Server* server, char** lines) {
     for (int32_t i = 1; lines[i] != NULL; i++) {
         char** header = g_strsplit(lines[i], ": ", 2);
@@ -190,6 +257,14 @@ void _parse_headers(Server* server, char** lines) {
     }
 }
 
+/**
+ * Parse cookies. Each cookie must seperated by a ';'. White spaces
+ * at the end of cookies are ignored so both "<cookie1>;<cookie2>;..."
+ * and "<cookie1>; <cookie2>; ..." are fine. Cookies can be a key-value
+ * pair or just a single value, The key-value pairs are placed that way
+ * into a dictionary while a single value added to the dictionary such
+ * that it maps to the empty word.
+ */
 void _parse_cookie(Server* server, char* cookie) {
     char** cookies = g_strsplit(cookie, ";", -1);
     for (int32_t i = 0; cookies[i] != NULL; i++) {

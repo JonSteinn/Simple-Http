@@ -3,11 +3,14 @@
 /**
  * Initialize the socket for the server.
  */
-void init_socket(Server* server) {
+void init_socket(Server* server, bool* run) {
     _initialize_address(server);
     _setup_socket(server);
     _bind_socket(server);
     _listen_on_socket(server);
+    if (server->fd == -1) {
+        *run = false;
+    }
     if (server->cfg->debug) {
         _socket_display(server);
     }
@@ -51,17 +54,21 @@ void _bind_socket(Server* server) {
     int32_t tries = 10;
     while(true) {
         int32_t bind_results = bind(server->fd, (struct sockaddr*)&server->address, (socklen_t)sizeof(struct sockaddr_in));
+        
         if (bind_results >= 0) {
+            // Success
             break;
         } else if (errno == EADDRINUSE) {
+            // Socket in use
             tries--;
             if (tries == 0) {
                 server->fd = -1;
                 break;
             }
-            server->cfg->port = (server->cfg->port + 1) < 1024 ? 1024 : server->cfg->port + 1;
+            server->cfg->port = server->cfg->port == 65535 ? 1024 : server->cfg->port + 1;
             server->address.sin_port = htons(server->cfg->port);
         } else {
+            // Error other then socket in use
             server->fd = -1;
             break;
         }

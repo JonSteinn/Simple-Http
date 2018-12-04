@@ -161,7 +161,6 @@ void _config_set_from_args(GHashTable* settings, int32_t argc, char** argv) {
  * Fetches values from dictionary for each field and passes it to the
  * appropriate set function. If the field is not in the dictionary,
  * NULL is passed to the set function.
- * 
  */
 void _config_set(Config* cfg, GHashTable* settings) {
     _config_set_debug(cfg, (char*)g_hash_table_lookup(settings, "DEBUG"));

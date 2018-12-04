@@ -1,3 +1,11 @@
+/*************************************************************
+ * Written by: Jón Steinn Elíasson                           *
+ *                                                           *
+ * Handles multiplexing via poll. Provides a simple          *
+ * interface on when some event has occured. It also handles *
+ * compressing of the poll data structure                    *
+ *************************************************************/
+
 #ifndef pi1aNn1Ex6_SIMPLE_HTTP_SERVER_POLL_H
 #define pi1aNn1Ex6_SIMPLE_HTTP_SERVER_POLL_H
 

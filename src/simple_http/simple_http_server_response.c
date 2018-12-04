@@ -1,5 +1,10 @@
 #include "simple_http_server_response.h"
 
+/**
+ * Initialize the single response object that the server holds
+ * and is used by all clients. Must be destroyed with the function
+ * destroy_reponse.
+ */
 void init_resposne(Server* server) {
     server->response = (Response*)malloc(sizeof(Response));
     
@@ -9,6 +14,9 @@ void init_resposne(Server* server) {
     server->response->status_code = 0;
 }
 
+/**
+ * Clears whatever the response object currently holds.
+ */
 void restart_response(Server* server) {
     g_hash_table_remove_all(server->response->headers);
     g_hash_table_remove_all(server->response->cookies);
@@ -16,6 +24,9 @@ void restart_response(Server* server) {
     server->response->status_code = 0;
 }
 
+/**
+ * De-allocate whatever memory was allocated with init_response.
+ */
 void destroy_response(Server* server) {
     g_hash_table_destroy(server->response->headers);
     g_hash_table_destroy(server->response->cookies);

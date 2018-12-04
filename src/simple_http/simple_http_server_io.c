@@ -1,5 +1,13 @@
 #include "simple_http_server_io.h"
 
+void init_io(Server* server) {    
+    server->buffer = (char*)malloc(sizeof(char) * server->cfg->buffer_size);
+}
+
+void destroy_io(Server* server) {
+    free(server->buffer);
+}
+
 int32_t send_g_string(Server* server, int32_t fd, GString* response) {
     size_t total = 0;
     

@@ -1,3 +1,9 @@
+/*************************************************************
+ * Written by: Jón Steinn Elíasson                           *
+ *                                                           *
+ * A collection of status codes constants.                   *
+ *************************************************************/
+
 #ifndef G8Uiw78F43_SIMPLE_HTTP_STATUS_CODES_H
 #define G8Uiw78F43_SIMPLE_HTTP_STATUS_CODES_H
 

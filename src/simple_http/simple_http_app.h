@@ -1,3 +1,10 @@
+/*************************************************************
+ * Written by: Jón Steinn Elíasson                           *
+ *                                                           *
+ * This holds all methods the framework user is expected to  *
+ * use. It serves as a kind of interface.                    *
+ *************************************************************/
+
 #ifndef yxPf8IZHjp_SIMPLE_HTTP_APP
 #define yxPf8IZHjp_SIMPLE_HTTP_APP
 

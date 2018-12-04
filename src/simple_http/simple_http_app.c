@@ -25,20 +25,13 @@ void config_server(Server* server, char* path, int32_t argc, char** argv) {
     }
 
     init_config(server, path, argc - 1, argv + 1);
-    init_socket(server);
+    init_socket(server, &run);
     init_poll(server);
     init_client_pool(server);
-
     init_default_responses(server);
     init_request(server);
     init_resposne(server);
-    
-    server->buffer = (char*)malloc(sizeof(char) * server->cfg->buffer_size);
-    
-
-
-
-    run = server->fd != -1;
+    init_io(server);
 }
 
 /**
@@ -58,30 +51,30 @@ void start_server(Server* server) {
     while(run) {
 
         if (has_event(server, &run) && run) {
+            // Event on server's fd => New client
             if (new_client_event(server)) {
                 add_new_client(server);
             }
+
+            // Check for events on existing client's fds
             for (int32_t i = 1; i < server->poll->fds_in_use && run; i++) {
+                // If client with index=i 'has something to say'
                 if (existing_client_event(i, server)) {
-                    
+
+                    // Extract needed info
                     int32_t fd = server->poll->fds[i].fd;
                     Client* client = g_hash_table_lookup(server->client_pool, &fd);
                     bool transfer_complete = false;
 
                     if (recv_from_client_successs(server, fd, client, &transfer_complete)) {
                         if (transfer_complete) {
-
                             if (!parse_request(server, client->raw_request)) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
-                            }
-
-                            //      => Check if path+meth exists
-                            //      => call user method to construct response
-                            //      => send response
-
-                            else { 
+                            } else { 
+                                //      => Check if path+meth exists
+                                //      => call user method to construct response
+                                //      => send response
                                 send_default(server, fd, 200);  // <<---- remove 
-                            
                             }
 
                             restart_request(server);
@@ -107,22 +100,15 @@ void start_server(Server* server) {
  * the server it self. That responsibility falls on the caller.
  */
 void destroy_server(Server* server) {
-
     destroy_config(server);
-
-    destroy_socket(server);
-
-    
+    destroy_socket(server);    
     destroy_client_pool(server);
-
     // Destroy poll after client pool
     destroy_poll(server);
-
     destroy_default_responses(server);
     destroy_response(server);
     destroy_request(server);
-
-    free(server->buffer);
+    destroy_io(server);
 }
 
 
