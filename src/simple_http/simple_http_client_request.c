@@ -152,7 +152,10 @@ bool _parse_url(Server* server, char* url) {
 
         // split into <path> and <fragment>
         second_split = g_strsplit(url, "#", 2);
-        g_string_append(server->request->path, second_split[0]);
+
+        size_t len = string_length_without_trailing_forward_slash(second_split[0]);
+        size_t offset = string_offset_jumping_leading_forward_slash(second_split[0], len);
+        g_string_append_len(server->request->path, second_split[0] + offset, len - offset);
         
         // If option i and the fragment is not the empty word.
         if (second_split[1] != NULL && second_split[1][0] != '\0') {
@@ -164,7 +167,9 @@ bool _parse_url(Server* server, char* url) {
         // Option ii: <path>?<queries>
 
         // We already have the path in the first split
-        g_string_append(server->request->path, first_split[0]);
+        size_t len = string_length_without_trailing_forward_slash(first_split[0]);
+        size_t offset = string_offset_jumping_leading_forward_slash(first_split[0], len);
+        g_string_append_len(server->request->path, first_split[0] + offset, len - offset);
 
         // Split remaining (string after ?) into <queries> and <fragment>
         second_split = g_strsplit(first_split[1], "#", 2);

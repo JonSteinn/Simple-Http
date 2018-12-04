@@ -14,5 +14,7 @@
 
 int32_t* alloc_int(int32_t integer);
 char* trim_end_white_spaces_alloc(const char* str);
+size_t string_length_without_trailing_forward_slash(const char* string);
+size_t string_offset_jumping_leading_forward_slash(const char* string, size_t len);
 
 #endif

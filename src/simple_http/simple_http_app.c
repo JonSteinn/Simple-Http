@@ -71,6 +71,7 @@ void start_server(Server* server) {
                             if (!parse_request(server, client->raw_request)) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
                             } else { 
+                                printf("\n#################\n{%s}\n#############\n\n", server->request->path->str);
                                 //      => Check if path+meth exists
                                 //      => call user method to construct response
                                 //      => send response

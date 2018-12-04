@@ -30,3 +30,32 @@ char* trim_end_white_spaces_alloc(const char* str) {
 
     return len == 0 ? NULL : g_strndup(str + start, len - start);
 }
+
+/**
+ * Given a string, we return its length ignoring any trailing
+ * occurrances of '/'. Example: 
+ *  func("/")     = 0
+ *  func(NULL)    = 0
+ *  func("/a/b/") = 4
+ */
+size_t string_length_without_trailing_forward_slash(const char* string) {
+    if (!string) {
+        return 0;
+    }
+    size_t len = strlen(string);
+    while (len > 0 && string[len - 1] == '/') {
+        len--;
+    }
+    return len;
+}
+
+/**
+ * How many forward slashes in a row are at the start of the string?
+ */
+size_t string_offset_jumping_leading_forward_slash(const char* string, size_t len) {
+    size_t offset = 0;
+    while (offset < len && string[offset] == '/') {
+        offset++;
+    }
+    return offset;
+}
