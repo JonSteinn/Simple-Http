@@ -1,12 +1,17 @@
-#include <stdint.h>
 #include "simple_http/simple_http_app.h"
 
+void asdf(Request* req, Response* res, int32_t argc, char** argv) {
+    res->status_code = status_code.OK;
+    g_hash_table_insert(res->headers, g_strdup("content-type"), g_strdup("text/html; charset=utf-8"));
+    g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>Testing...</body></html>");
+}
 
 int32_t main(int32_t argc, char** argv) {
     Server server;
     config_server(&server, "./src/config.txt", argc, argv);
     
     // Add routes here
+    add_route(&server, METHOD_GET, "/", &asdf);
 
     start_server(&server);
     destroy_server(&server);
@@ -22,10 +27,8 @@ Up6MspZrDp
 wgtEL3FD4V
 ZIlhpZFzQD
 HfwT8zFjfu
-wlwKdUHzwZ
 E9sYe5WFvi
 TJyiLq9nRs
-Fxjyb5PNWQ
 diYyFKtLgV
 xewauJG3uG
 TJ8l9OzHaM

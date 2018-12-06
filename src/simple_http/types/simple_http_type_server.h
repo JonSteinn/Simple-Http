@@ -46,6 +46,10 @@
  *      more to read on a socket we parse the raw request
  *      to this request object, which the framework user
  *      has access to but should not modify.
+ *  routes
+ *      An array of dictionaries, one for each supported
+ *      http method type. It contains all defined routes
+ *      that the server supports.
  */
 typedef struct {
     Config*                 cfg;
@@ -57,6 +61,7 @@ typedef struct {
     GHashTable*             default_response;
     Response*               response;
     Request*                request;
+    GHashTable**            routes;
 } Server;
 
 #endif

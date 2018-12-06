@@ -8,6 +8,7 @@
         "time.h": "c",
         "simple_http_type_request.h": "c",
         "inet.h": "c",
-        "in.h": "c"
+        "in.h": "c",
+        "simple_http_server_socket.h": "c"
     }
 }

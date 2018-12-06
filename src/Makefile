@@ -20,6 +20,7 @@ RESPONSE = $(PREFIX_NAME)server_response
 IO = $(PREFIX_NAME)server_io
 S_CODE = $(PREFIX_NAME)status_codes
 REQUEST = $(PREFIX_NAME)client_request
+ROUTE = $(PREFIX_NAME)server_routes
 # Combination
 DEPENDENCIES = \
 	$(APP).o \
@@ -31,7 +32,8 @@ DEPENDENCIES = \
 	$(RESPONSE).o \
 	$(IO).o \
 	$(S_CODE).o \
-	$(REQUEST).o
+	$(REQUEST).o \
+	$(ROUTE).o
 
 # Compile function with required flasg
 define COMPILE
@@ -59,6 +61,7 @@ $(call COMPILE,RESPONSE)
 $(call COMPILE,IO)
 $(call COMPILE,S_CODE)
 $(call COMPILE,REQUEST)
+$(call COMPILE,ROUTE)
 
 # Removal of .o files
 clean:

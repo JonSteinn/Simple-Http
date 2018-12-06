@@ -32,6 +32,40 @@ void config_server(Server* server, char* path, int32_t argc, char** argv) {
     init_request(server);
     init_resposne(server);
     init_io(server);
+    init_routes(server);
+}
+
+/**
+ * Add an endpoint to the server if method is valid. Any
+ * {param} part of the path is passed as arguments to the
+ * function, e.g. defining "/home/dostuff/{param}/" would
+ * pass "stuff" as argument when "/home/dostuff/stuff" is
+ * requested.
+ */
+void add_route(Server* server, Method method, const char* path, route_function function) {
+    if (method < 0 || method > 8 || path == NULL || function == NULL) return;
+
+    // Check for: |, \, ^, [, ], `, <, >
+    size_t len = strlen(path);
+    for (size_t i = 0; i < len; i++) {
+        if (server->request->path->str[i] == '|' ||
+            server->request->path->str[i] == '\\' ||
+            server->request->path->str[i] == '[' ||
+            server->request->path->str[i] == ']' ||
+            server->request->path->str[i] == '`' ||
+            server->request->path->str[i] == '<' ||
+            server->request->path->str[i] == '>') {
+            
+            return;
+        }
+    }
+
+
+    len = string_length_without_trailing_forward_slash_given_length(path, len);
+    size_t offset = string_offset_jumping_leading_forward_slash(path, len);
+    char* str = g_strndup(path + offset, len - offset);
+    add_new_route(server, method, function, str);
+    free(str);
 }
 
 /**
@@ -71,11 +105,20 @@ void start_server(Server* server) {
                             if (!parse_request(server, client->raw_request)) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
                             } else { 
-                                printf("\n#################\n{%s}\n#############\n\n", server->request->path->str);
-                                //      => Check if path+meth exists
-                                //      => call user method to construct response
-                                //      => send response
-                                send_default(server, fd, 200);  // <<---- remove 
+                                if (find_route_and_call_its_method(server)) {
+                                    // TODO: Create parser for this...
+                                    GString* s = g_string_new(NULL);
+                                    
+                                    g_string_append_printf(s, "HTTP/1.1 %d %s\r\n", server->response->status_code, "OK"); // <--- missing: TODO--- int->name for status codes
+                                    void tmp_fn(gpointer k, gpointer v, gpointer d) {
+                                        g_string_append_printf((GString*)d, "%s: %s\r\n", (char*)k, (char*)v);
+                                    }
+                                    g_hash_table_foreach(server->response->headers, tmp_fn, s);
+                                    g_string_append_printf(s, "\r\n%s", server->response->body->str);
+                                    send_g_string(server, fd, s);
+                                } else {
+                                    send_default(server, fd, status_code.NOT_FOUND);
+                                }
                             }
 
                             restart_request(server);
@@ -110,6 +153,7 @@ void destroy_server(Server* server) {
     destroy_response(server);
     destroy_request(server);
     destroy_io(server);
+    destroy_routes(server);
 }
 
 
