@@ -1,5 +1,10 @@
 #include "simple_http_server_routes.h"
 
+/**
+ * Initialize an array of route dictionaries. Each entry in the
+ * array corresponds to a single http method (GET/HEAD/etc). Each
+ * dictionary maps strings to a sub-dictionary and a function.
+ */
 void init_routes(Server* server) {
     server->routes = (GHashTable**)malloc(sizeof(GHashTable*) * 9);
     for (int32_t i = 0; i < 9; i++) {
@@ -7,12 +12,18 @@ void init_routes(Server* server) {
     }
 }
 
+/**
+ * Value de-allocator for route dictionaries.
+ */
 void _free_routes(gpointer mem) {
     route_part* part = (route_part*)mem;
     if (part->next != NULL) g_hash_table_destroy(part->next);
     free(part); 
 }
 
+/**
+ * De-allocate the array of route dictionaries.
+ */
 void destroy_routes(Server* server) {
     for (int32_t i = 0; i < 9; i++) {
         g_hash_table_destroy(server->routes[i]);
@@ -20,21 +31,27 @@ void destroy_routes(Server* server) {
     free(server->routes);
 }
 
-bool add_new_route(Server* server, Method method, route_function function, const char* path) {
+/**
+ * Add an endpoint for a given method and a callback function.
+ */
+bool add_new_route(Server* server, Method method, route_function callback, const char* path) {
     GHashTable* dictionary = server->routes[method];
     char** parts = g_strsplit(path, "/", -1);
     bool is_valid = true;
     
     if (parts[0] == NULL) {
-        _home_add_new_route(dictionary, function);
+        _home_add_new_route(dictionary, callback);
     } else {
-        is_valid = _sub_add_new_route(parts, dictionary, function);
+        is_valid = _sub_add_new_route(parts, dictionary, callback);
     }
     
     g_strfreev(parts);
     return is_valid;
 }
 
+/**
+ * Helper for adding a callback to the home path ("/").
+ */
 void _home_add_new_route(GHashTable* dictionary, route_function function) {
     route_part* part = (route_part*)g_hash_table_lookup(dictionary, "");
     if (part == NULL) {
@@ -44,6 +61,11 @@ void _home_add_new_route(GHashTable* dictionary, route_function function) {
     }
 }
 
+/**
+ * Allocate an set a new route_part. If init_next is true, we initialize
+ * the sub dictionary as well. If the function is not NULL, we store it
+ * in the route_part.
+ */
 route_part* _alloc_new_route_part(bool init_next, route_function function) {
     route_part* part = (route_part*)malloc(sizeof(route_part));
     part->function = function == NULL ? NULL : function;
@@ -51,6 +73,10 @@ route_part* _alloc_new_route_part(bool init_next, route_function function) {
     return part;
 }
 
+/**
+ * Helper for adding a callback to any other path than the home path ("/"). If the 
+ * path is valid, we return true, otherwise false.
+ */
 bool _sub_add_new_route(char** parts, GHashTable* dictionary, route_function function) {
     int32_t i = 0;
     for (i = 0; parts[i] != NULL && parts[i + 1] != NULL; i++) {
