@@ -1,37 +1,52 @@
 #include "simple_http/simple_http_app.h"
 
-void asdf(Request* req, Response* res, int32_t argc, char** argv) {
+#define RouteHandler(name, body) void name(__attribute__((unused)) Request* req, __attribute__((unused)) Response* res, __attribute__((unused)) int32_t argc, __attribute__((unused)) char** argv) body
+RouteHandler(t1, {    
     res->status_code = status_code.OK;
     g_hash_table_insert(res->headers, g_strdup("Content-Type"), g_strdup("text/html; charset=utf-8"));
-    g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>Testing...</body></html>");
-    
-    g_hash_table_insert(res->headers, g_strdup("Content-Length"), g_strdup("89"));
-}
-void asdf2(Request* req, Response* res, int32_t argc, char** argv) {
-    
+    g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>Testing...1<br><a href=\"/a/b\">click me</a></body></html>");    
+    GString* str = g_string_new(NULL);
+    g_string_append_printf(str, "%zu", res->body->len);
+    g_hash_table_insert(res->headers, g_strdup("Content-Length"), g_strdup(str->str));
+    g_string_free(str, true);
+})
+RouteHandler(t2, {    
     res->status_code = status_code.OK;
-    //int n1 = atoi(argv[0]);
-    //int n2 = atoi(argv[1]);
-    g_hash_table_insert(res->headers, g_strdup("content-type"), g_strdup("text/html; charset=utf-8"));
-    //g_string_append_printf(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>%s + %s = %d</body></html>", argv[0], argv[1], n1+n2);
-    g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>SOMETHING</body></html>");
-}
-void asdf3(Request* req, Response* res, int32_t argc, char** argv) {
-    
+    g_hash_table_insert(res->headers, g_strdup("Content-Type"), g_strdup("text/html; charset=utf-8"));
+    g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>Testing...2<br><a href=\"/a/b/jon/c/steinn\">click me</a></body></html>");    
+    GString* str = g_string_new(NULL);
+    g_string_append_printf(str, "%zu", res->body->len);
+    g_hash_table_insert(res->headers, g_strdup("Content-Length"), g_strdup(str->str));
+    g_string_free(str, true);
+})
+RouteHandler(t3, {    
     res->status_code = status_code.OK;
-    g_hash_table_insert(res->headers, g_strdup("content-type"), g_strdup("text/html; charset=utf-8"));
-    g_string_append_printf(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>%s and %s</body></html>", argv[0], argv[1]);
-}
+    g_hash_table_insert(res->headers, g_strdup("Content-Type"), g_strdup("text/html; charset=utf-8"));
+    g_string_append_printf(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>%s and %s<br><a href=\"/something\">click me</a></body></html>", argv[0], argv[1]);
+    GString* str = g_string_new(NULL);
+    g_string_append_printf(str, "%zu", res->body->len);
+    g_hash_table_insert(res->headers, g_strdup("Content-Length"), g_strdup(str->str));
+    g_string_free(str, true);
+})
+RouteHandler(t4, {    
+    res->status_code = status_code.OK;
+    g_hash_table_insert(res->headers, g_strdup("Content-Type"), g_strdup("text/html; charset=utf-8"));
+    g_string_append_printf(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>%s</body></html>", argv[0]);
+    GString* str = g_string_new(NULL);
+    g_string_append_printf(str, "%zu", res->body->len);
+    g_hash_table_insert(res->headers, g_strdup("Content-Length"), g_strdup(str->str));
+    g_string_free(str, true);
+})
 
 int32_t main(int32_t argc, char** argv) {
     Server server;
     config_server(&server, "./src/config.txt", argc, argv);
     
     // Add routes here
-    add_route(&server, METHOD_GET, "/", &asdf);
-    add_route(&server, METHOD_GET, "a/b", &asdf2);
-    add_route(&server, METHOD_GET, "{arg}/{arg}", &asdf3);
-    add_route(&server, METHOD_GET, "a/b/{arg}/{arg}", &asdf3);
+    add_route(&server, METHOD_GET, "", &t1);
+    add_route(&server, METHOD_GET, "a/b", &t2);
+    add_route(&server, METHOD_GET, "a/b/{arg}/c/{arg}", &t3);
+    add_route(&server, METHOD_GET, "{arg}", &t4);
 
     start_server(&server);
     destroy_server(&server);
