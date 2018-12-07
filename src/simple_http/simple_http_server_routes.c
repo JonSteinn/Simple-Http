@@ -35,7 +35,6 @@ void add_new_route(Server* server, Method method, route_function function, const
         g_strfreev(parts);
         return;
     }
-    
     int32_t i = 0;
     for (i = 0; parts[i] != NULL && parts[i + 1] != NULL; i++) {
         if (!parts[i][0] || (contains_curly_brackets(parts[i]) && g_ascii_strcasecmp(parts[i], "{arg}"))) {

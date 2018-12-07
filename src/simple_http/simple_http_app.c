@@ -48,13 +48,13 @@ void add_route(Server* server, Method method, const char* path, route_function f
     // Check for: |, \, ^, [, ], `, <, >
     size_t len = strlen(path);
     for (size_t i = 0; i < len; i++) {
-        if (server->request->path->str[i] == '|' ||
-            server->request->path->str[i] == '\\' ||
-            server->request->path->str[i] == '[' ||
-            server->request->path->str[i] == ']' ||
-            server->request->path->str[i] == '`' ||
-            server->request->path->str[i] == '<' ||
-            server->request->path->str[i] == '>') {
+        if (path[i] == '|' ||
+            path[i] == '\\' ||
+            path[i] == '[' ||
+            path[i] == ']' ||
+            path[i] == '`' ||
+            path[i] == '<' ||
+            path[i] == '>') {
             
             return;
         }
@@ -116,6 +116,8 @@ void start_server(Server* server) {
                                     g_hash_table_foreach(server->response->headers, tmp_fn, s);
                                     g_string_append_printf(s, "\r\n%s", server->response->body->str);
                                     send_g_string(server, fd, s);
+
+                                    g_string_free(s, true);
                                 } else {
                                     send_default(server, fd, status_code.NOT_FOUND);
                                 }
