@@ -20,8 +20,9 @@ void _home_add_new_route(GHashTable* dictionary, route_function function);
 route_part* _alloc_new_route_part(bool init_next, route_function function);
 bool _sub_add_new_route(char** parts, GHashTable* dictionary, route_function function);
 
-
-bool find_route_and_call_its_method(Server* server);
+bool find_and_call_route_callback(Server* server);
+bool _home_find_and_call_route_callback(Server* server, GHashTable* dictionary);
+bool _sub_find_and_call_route_callback(Server* server, GHashTable* dictionary, char** parts);
 
 bool validate_route(const char* str);
 

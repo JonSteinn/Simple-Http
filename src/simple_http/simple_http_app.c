@@ -95,7 +95,7 @@ void start_server(Server* server) {
                             if (!parse_request(server, client->raw_request)) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
                             } else { 
-                                if (find_route_and_call_its_method(server)) {
+                                if (find_and_call_route_callback(server)) {
                                     // BEGIN TEMP:
 
                                     GString* s = g_string_new(NULL);                                    
@@ -118,7 +118,7 @@ void start_server(Server* server) {
                             restart_response(server);
                         }
                     } else {
-                        remove_client_from_pool(server, i, fd);   
+                        remove_client_from_pool(server, i, fd);
                     }
                 }
             }

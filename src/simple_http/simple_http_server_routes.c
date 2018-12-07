@@ -112,96 +112,100 @@ bool _sub_add_new_route(char** parts, GHashTable* dictionary, route_function fun
     return true;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-bool find_route_and_call_its_method(Server* server) {
+/**
+ * Try finding the path and method's callback for the
+ * currently stored request. If successful, we call the
+ * callback function and return true. Otherwise false is
+ * returned.
+ */
+bool find_and_call_route_callback(Server* server) {
     GHashTable* dictionary = server->routes[server->request->method];
     char** parts = g_strsplit(server->request->path->str, "/", -1);
     bool found = true;
 
-    // HOME
     if (parts[0] == NULL) {
-        route_part* part = (route_part*)g_hash_table_lookup(dictionary, "");
-        if (part == NULL) {
-            found = false;
-        } else {
-            part->function(server->request, server->response, 0, NULL);
-        }
-        g_strfreev(parts);
-        return found;
+        found = _home_find_and_call_route_callback(server, dictionary);
+    } else {
+        found = _sub_find_and_call_route_callback(server, dictionary, parts);
     }
 
+    g_strfreev(parts);
+    return found;
+}
+
+/**
+ * Helper for finding and calling callback for home route ("/").
+ */
+bool _home_find_and_call_route_callback(Server* server, GHashTable* dictionary) {
+    route_part* part = (route_part*)g_hash_table_lookup(dictionary, "");
+    if (part == NULL || part->function == NULL) {
+        return false;
+    } else {
+        part->function(server->request, server->response, 0, NULL);
+        return true;
+    }
+}
+
+/**
+ * Helper for finding and calling callback for non-home route (not "/").
+ */
+bool _sub_find_and_call_route_callback(Server* server, GHashTable* dictionary, char** parts) {
+    bool found = true;
     int32_t argument_counter = 0;
     int32_t array_size = 10;
     char** arguments = (char**)malloc(sizeof(char*) * array_size);
 
     int32_t i = 0;
     for (i = 0; parts[i] != NULL && parts[i + 1] != NULL; i++) {       
-         
         route_part* part = (route_part*)g_hash_table_lookup(dictionary, parts[i]);
-        if (part == NULL) {
-            if (parts[i][0] && (part = (route_part*)g_hash_table_lookup(dictionary, "{arg}")) != NULL) {
-                if (argument_counter == array_size) {
-                    array_size <<= 1;
-                    arguments = realloc(arguments, sizeof(char*) * array_size);
-                }
-                arguments[argument_counter++] = g_strdup(parts[i]);
+        // If not found but we did find an {arg}
+        if (part == NULL && (parts[i][0] && (part = (route_part*)g_hash_table_lookup(dictionary, "{arg}")) != NULL)) {
+            // Resize argument array if needed
+            if (argument_counter == array_size) {
+                array_size <<= 1;
+                arguments = realloc(arguments, sizeof(char*) * array_size);
             }
+            arguments[argument_counter++] = g_strdup(parts[i]);
         }
 
         if (part == NULL || part->next == NULL) {
+            // Not found
             found = false;
             break;
         } else {
+            // Dive
             dictionary = part->next;
         }
     }
 
     if (found) {
         route_part* part = (route_part*)g_hash_table_lookup(dictionary, parts[i]);
-        if (part == NULL) {
-            if (parts[i][0] && (part = (route_part*)g_hash_table_lookup(dictionary, "{arg}")) != NULL) {
-                if (argument_counter == array_size) {
-                    array_size <<= 1;
-                    arguments = realloc(arguments, sizeof(char*) * array_size);
-                }
-                arguments[argument_counter++] = g_strdup(parts[i]);
+        // If not found but we did find an {arg}
+        if (part == NULL && (parts[i][0] && (part = (route_part*)g_hash_table_lookup(dictionary, "{arg}")) != NULL)) {
+            // Resize argument array if needed
+            if (argument_counter == array_size) {
+                array_size <<= 1;
+                arguments = realloc(arguments, sizeof(char*) * array_size);
             }
+            arguments[argument_counter++] = g_strdup(parts[i]);
         }
         if (part == NULL || part->function == NULL) {
+            // Not found
             found = false;
         } else {
+            // Callback!
             part->function(server->request, server->response, argument_counter, arguments);
         }
     }
+
+    // free resources
     for (int32_t i = 0; i < argument_counter; i++) {
         free(arguments[i]);
     }
     free(arguments);
-    g_strfreev(parts);
 
     return found;
 }
-
 
 /**
  * Validate routes set by framework user.
