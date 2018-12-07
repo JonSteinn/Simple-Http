@@ -2,8 +2,25 @@
 
 void asdf(Request* req, Response* res, int32_t argc, char** argv) {
     res->status_code = status_code.OK;
-    g_hash_table_insert(res->headers, g_strdup("content-type"), g_strdup("text/html; charset=utf-8"));
+    g_hash_table_insert(res->headers, g_strdup("Content-Type"), g_strdup("text/html; charset=utf-8"));
     g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>Testing...</body></html>");
+    
+    g_hash_table_insert(res->headers, g_strdup("Content-Length"), g_strdup("89"));
+}
+void asdf2(Request* req, Response* res, int32_t argc, char** argv) {
+    
+    res->status_code = status_code.OK;
+    //int n1 = atoi(argv[0]);
+    //int n2 = atoi(argv[1]);
+    g_hash_table_insert(res->headers, g_strdup("content-type"), g_strdup("text/html; charset=utf-8"));
+    //g_string_append_printf(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>%s + %s = %d</body></html>", argv[0], argv[1], n1+n2);
+    g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>SOMETHING</body></html>");
+}
+void asdf3(Request* req, Response* res, int32_t argc, char** argv) {
+    
+    res->status_code = status_code.OK;
+    g_hash_table_insert(res->headers, g_strdup("content-type"), g_strdup("text/html; charset=utf-8"));
+    g_string_append_printf(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>%s and %s</body></html>", argv[0], argv[1]);
 }
 
 int32_t main(int32_t argc, char** argv) {
@@ -12,6 +29,9 @@ int32_t main(int32_t argc, char** argv) {
     
     // Add routes here
     add_route(&server, METHOD_GET, "/", &asdf);
+    add_route(&server, METHOD_GET, "a/b", &asdf2);
+    add_route(&server, METHOD_GET, "{arg}/{arg}", &asdf3);
+    add_route(&server, METHOD_GET, "a/b/{arg}/{arg}", &asdf3);
 
     start_server(&server);
     destroy_server(&server);

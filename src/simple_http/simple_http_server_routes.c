@@ -23,7 +23,6 @@ void destroy_routes(Server* server) {
 void add_new_route(Server* server, Method method, route_function function, const char* path) {
     GHashTable* dictionary = server->routes[method];
     char** parts = g_strsplit(path, "/", -1);
-
     // HOME
     if (parts[0] == NULL) {
         route_part* part = (route_part*)g_hash_table_lookup(dictionary, "");
@@ -48,10 +47,11 @@ void add_new_route(Server* server, Method method, route_function function, const
             part->function = NULL;
             part->next = g_hash_table_new_full(g_str_hash, g_str_equal, free, _free_routes);
             g_hash_table_insert(dictionary, g_strdup(parts[i]), part);
+        } else if (part->next == NULL) {
+            part->next = g_hash_table_new_full(g_str_hash, g_str_equal, free, _free_routes);
         }
         dictionary = part->next;
     }
-
     if (parts[i][0] && !(contains_curly_brackets(parts[i]) && g_ascii_strcasecmp(parts[i], "{arg}"))) {
         
         route_part* part = (route_part*)g_hash_table_lookup(dictionary, parts[i]);
@@ -59,6 +59,7 @@ void add_new_route(Server* server, Method method, route_function function, const
             part = (route_part*)malloc(sizeof(route_part));
             part->function = function;
             part->next = NULL;
+            g_hash_table_insert(dictionary, g_strdup(parts[i]), part);
         }
     }
     
@@ -82,14 +83,13 @@ bool find_route_and_call_its_method(Server* server) {
         return found;
     }
 
-
-
     int32_t argument_counter = 0;
     int32_t array_size = 10;
     char** arguments = (char**)malloc(sizeof(char*) * array_size);
 
     int32_t i = 0;
-    for (i = 0; parts[i] != NULL && parts[i + 1] != NULL; i++) {        
+    for (i = 0; parts[i] != NULL && parts[i + 1] != NULL; i++) {       
+         
         route_part* part = (route_part*)g_hash_table_lookup(dictionary, parts[i]);
         if (part == NULL) {
             if (parts[i][0] && (part = (route_part*)g_hash_table_lookup(dictionary, "{arg}")) != NULL) {
@@ -101,7 +101,7 @@ bool find_route_and_call_its_method(Server* server) {
             }
         }
 
-        if (part == NULL) {
+        if (part == NULL || part->next == NULL) {
             found = false;
             break;
         } else {
@@ -120,13 +120,12 @@ bool find_route_and_call_its_method(Server* server) {
                 arguments[argument_counter++] = g_strdup(parts[i]);
             }
         }
-        if (part == NULL) {
+        if (part == NULL || part->function == NULL) {
             found = false;
         } else {
             part->function(server->request, server->response, argument_counter, arguments);
         }
     }
-
     for (int32_t i = 0; i < argument_counter; i++) {
         free(arguments[i]);
     }
