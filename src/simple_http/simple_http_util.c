@@ -50,21 +50,6 @@ size_t string_length_without_trailing_forward_slash(const char* string) {
 }
 
 /**
- * Same as string_length_without_trailing_forward_slash, but
- * caller responsible for knowing and passing down the string's
- * length.
- */
-size_t string_length_without_trailing_forward_slash_given_length(const char* string, size_t len) {
-    if (!string) {
-        return 0;
-    }
-    while (len > 0 && string[len - 1] == '/') {
-        len--;
-    }
-    return len;
-}
-
-/**
  * How many forward slashes in a row are at the start of the string?
  */
 size_t string_offset_jumping_leading_forward_slash(const char* string, size_t len) {
@@ -87,3 +72,4 @@ bool contains_curly_brackets(const char* str) {
     }
     return false;
 }
+

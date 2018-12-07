@@ -43,29 +43,19 @@ void config_server(Server* server, char* path, int32_t argc, char** argv) {
  * requested.
  */
 void add_route(Server* server, Method method, const char* path, route_function function) {
-    if (method < 0 || method > 8 || path == NULL || function == NULL) return;
-
-    // Check for: |, \, ^, [, ], `, <, >
-    size_t len = strlen(path);
-    for (size_t i = 0; i < len; i++) {
-        if (path[i] == '|' ||
-            path[i] == '\\' ||
-            path[i] == '[' ||
-            path[i] == ']' ||
-            path[i] == '`' ||
-            path[i] == '<' ||
-            path[i] == '>') {
-            
-            return;
-        }
+    bool valid = !(method < 0 || method > 8 || path == NULL || function == NULL || !validate_route(path));
+    
+    if (valid) {
+        size_t len = string_length_without_trailing_forward_slash(path);
+        size_t offset = string_offset_jumping_leading_forward_slash(path, len);
+        char* str = g_strndup(path + offset, len - offset);
+        valid = add_new_route(server, method, function, str);
+        free(str);
     }
 
-
-    len = string_length_without_trailing_forward_slash_given_length(path, len);
-    size_t offset = string_offset_jumping_leading_forward_slash(path, len);
-    char* str = g_strndup(path + offset, len - offset);
-    add_new_route(server, method, function, str);
-    free(str);
+    if (!valid && server->cfg->debug) {
+        printf("Invalid route: %s\n", path);
+    }
 }
 
 /**
@@ -106,9 +96,9 @@ void start_server(Server* server) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
                             } else { 
                                 if (find_route_and_call_its_method(server)) {
-                                    // TODO: Create parser for this...
-                                    GString* s = g_string_new(NULL);
-                                    
+                                    // BEGIN TEMP:
+
+                                    GString* s = g_string_new(NULL);                                    
                                     g_string_append_printf(s, "HTTP/1.1 %d %s\r\n", server->response->status_code, "OK"); // <--- missing: TODO--- int->name for status codes
                                     void tmp_fn(gpointer k, gpointer v, gpointer d) {
                                         g_string_append_printf((GString*)d, "%s: %s\r\n", (char*)k, (char*)v);
@@ -116,8 +106,9 @@ void start_server(Server* server) {
                                     g_hash_table_foreach(server->response->headers, tmp_fn, s);
                                     g_string_append_printf(s, "\r\n%s", server->response->body->str);
                                     send_g_string(server, fd, s);
-
                                     g_string_free(s, true);
+
+                                    // END
                                 } else {
                                     send_default(server, fd, status_code.NOT_FOUND);
                                 }

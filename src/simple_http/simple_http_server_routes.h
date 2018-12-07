@@ -15,7 +15,12 @@ void init_routes(Server* server);
 void _free_routes(gpointer mem);
 void destroy_routes(Server* server);
 
-void add_new_route(Server* server, Method method, route_function function, const char* path);
+bool add_new_route(Server* server, Method method, route_function function, const char* path);
+void _home_add_new_route(GHashTable* dictionary, route_function function);
+route_part* _alloc_new_route_part(bool init_next, route_function function);
+bool _sub_add_new_route(char** parts, GHashTable* dictionary, route_function function);
+
 bool find_route_and_call_its_method(Server* server);
 
+bool validate_route(const char* str);
 #endif

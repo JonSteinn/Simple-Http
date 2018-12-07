@@ -20,50 +20,92 @@ void destroy_routes(Server* server) {
     free(server->routes);
 }
 
-void add_new_route(Server* server, Method method, route_function function, const char* path) {
+bool add_new_route(Server* server, Method method, route_function function, const char* path) {
     GHashTable* dictionary = server->routes[method];
     char** parts = g_strsplit(path, "/", -1);
-    // HOME
+    bool is_valid = true;
+    
     if (parts[0] == NULL) {
-        route_part* part = (route_part*)g_hash_table_lookup(dictionary, "");
-        if (part == NULL) {
-            part = (route_part*)malloc(sizeof(route_part));
-            part->function = function;
-            part->next = NULL;
-            g_hash_table_insert(dictionary, g_strdup(""), part);
-        }
-        g_strfreev(parts);
-        return;
+        _home_add_new_route(dictionary, function);
+    } else {
+        is_valid = _sub_add_new_route(parts, dictionary, function);
     }
+    
+    g_strfreev(parts);
+    return is_valid;
+}
+
+void _home_add_new_route(GHashTable* dictionary, route_function function) {
+    route_part* part = (route_part*)g_hash_table_lookup(dictionary, "");
+    if (part == NULL) {
+        g_hash_table_insert(dictionary, g_strdup(""), _alloc_new_route_part(false, function));
+    } else {
+        part->function = function;
+    }
+}
+
+route_part* _alloc_new_route_part(bool init_next, route_function function) {
+    route_part* part = (route_part*)malloc(sizeof(route_part));
+    part->function = function == NULL ? NULL : function;
+    part->next = init_next ? g_hash_table_new_full(g_str_hash, g_str_equal, free, _free_routes) : NULL;
+    return part;
+}
+
+bool _sub_add_new_route(char** parts, GHashTable* dictionary, route_function function) {
     int32_t i = 0;
     for (i = 0; parts[i] != NULL && parts[i + 1] != NULL; i++) {
+        // Missing or includes bracket without being {arg}.
         if (!parts[i][0] || (contains_curly_brackets(parts[i]) && g_ascii_strcasecmp(parts[i], "{arg}"))) {
-            continue;
+            return false;
         }
+
+        // Dive
         route_part* part = (route_part*)g_hash_table_lookup(dictionary, parts[i]);
         if (part == NULL) {
-            part = (route_part*)malloc(sizeof(route_part));
-            part->function = NULL;
-            part->next = g_hash_table_new_full(g_str_hash, g_str_equal, free, _free_routes);
+            part = _alloc_new_route_part(true, NULL);
             g_hash_table_insert(dictionary, g_strdup(parts[i]), part);
         } else if (part->next == NULL) {
             part->next = g_hash_table_new_full(g_str_hash, g_str_equal, free, _free_routes);
         }
         dictionary = part->next;
     }
-    if (parts[i][0] && !(contains_curly_brackets(parts[i]) && g_ascii_strcasecmp(parts[i], "{arg}"))) {
-        
-        route_part* part = (route_part*)g_hash_table_lookup(dictionary, parts[i]);
-        if (part == NULL) {
-            part = (route_part*)malloc(sizeof(route_part));
-            part->function = function;
-            part->next = NULL;
-            g_hash_table_insert(dictionary, g_strdup(parts[i]), part);
-        }
+
+    // If invalid
+    if (!parts[i][0] || (contains_curly_brackets(parts[i]) && g_ascii_strcasecmp(parts[i], "{arg}"))) {
+        return false;
     }
     
-    g_strfreev(parts);
+    // Store pointer to function
+    route_part* part = (route_part*)g_hash_table_lookup(dictionary, parts[i]);
+    if (part == NULL) {
+        g_hash_table_insert(dictionary, g_strdup(parts[i]), _alloc_new_route_part(false, function));
+    } else {
+        part->function = function;
+    }
+
+    return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 bool find_route_and_call_its_method(Server* server) {
     GHashTable* dictionary = server->routes[server->request->method];
@@ -132,4 +174,36 @@ bool find_route_and_call_its_method(Server* server) {
     g_strfreev(parts);
 
     return found;
+}
+
+
+/**
+ * Validate routes set by framework user.
+ */
+bool validate_route(const char* path) {
+    size_t len = strlen(path);
+    for (size_t i = 0; i < len; i++) {
+        if ((path[i] >= 'a' && path[i] <= 'z') ||
+            (path[i] >= 'A' && path[i] <= 'Z') ||
+            (path[i] >= '0' && path[i] <= '9')) {
+            
+            continue;
+        }
+
+        char* legal = "/{}$-_.+!*'()";
+        size_t legal_len = strlen(legal);
+        bool valid = false;
+
+        for (size_t j = 0; j < legal_len; j++) {
+            if (path[i] == legal[j]) {
+                valid = true;
+                break;
+            }
+        }
+        
+        if (!valid) {
+            return false;
+        }
+    }
+    return true;
 }

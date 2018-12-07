@@ -2,8 +2,8 @@
 
 ## TODOs
   - PATH+METHOD => method => repsonse => send mechanism
-  - Static file support (at least html, cs, js, images)
   - URL parameters
+  - Static file support (at least html, cs, js, images)
   - Global response header settings (headers for all response...)
   - Customize default responses
   - Logging
