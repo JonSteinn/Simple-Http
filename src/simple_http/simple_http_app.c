@@ -43,7 +43,8 @@ void config_server(Server* server, char* path, int32_t argc, char** argv) {
  * requested.
  */
 void add_route(Server* server, Method method, const char* path, route_function function) {
-    bool valid = !(method < 0 || method > 8 || path == NULL || function == NULL || !validate_route(path));
+    bool valid = !(method < 0 || method > 8 || method == METHOD_HEAD || 
+                   path == NULL || function == NULL || !validate_route(path));
     
     if (valid) {
         size_t len = string_length_without_trailing_forward_slash(path);
@@ -54,7 +55,8 @@ void add_route(Server* server, Method method, const char* path, route_function f
     }
 
     if (!valid && server->cfg->debug) {
-        printf("Invalid route: %s\n", path);
+        printf("Invalid method, missing callback or invalid route: %s\n", 
+            path == NULL ? "<route missing>" : path);
     }
 }
 
@@ -94,13 +96,20 @@ void start_server(Server* server) {
                         if (transfer_complete) {
                             if (!parse_request(server, client->raw_request)) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
-                                // TODO: REMOVE ? [read some RFC]
-                            } else { 
+                                // TODO: REMOVE CLIENT <by disconnect> ? [read some RFC]
+                            } else {
+
+                                // Convert head to get
+                                bool head = server->request->method == METHOD_HEAD;
+                                if (head) {
+                                    server->request->method = METHOD_GET;
+                                }
+                                
                                 if (find_and_call_route_callback(server)) {
                                     set_default_response_headlers(server);
-                                    // GString* res = [PARSE_RESPONSE_OBJECT]
-                                    //send_g_string(server, fd, res);
-
+                                    GString* response = convert_response_to_string(server, head);
+                                    send_g_string(server, fd, response);
+                                    g_string_free(response, true);
                                 } else {
                                     send_default(server, fd, status_code.NOT_FOUND);
                                 }

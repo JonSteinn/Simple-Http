@@ -64,6 +64,65 @@ void set_default_response_headlers(Server* server) {
 }
 
 /**
+ * Convert the server's response to a GString.
+ */
+GString* convert_response_to_string(Server* server, bool is_head) {
+    GString* str = g_string_new_len(NULL, 1000);
+
+    // Start line
+    g_string_append_printf(str, "HTTP/1.1 %d %s\r\n", server->response->status_code, 
+        get_status_code_name(server->response->status_code));
+
+    // Headers (excluding Set-Cookie)
+    g_hash_table_foreach(server->response->headers, _append_header_to_string, str);
+
+    // Cookies
+    GString* cookie_tmp_str = g_string_new(NULL);
+    g_hash_table_foreach(server->response->cookies, _cookie_joiner, cookie_tmp_str);
+    if (cookie_tmp_str->len > 0) {
+        g_string_append_printf(str, "Set-Cookie: %s\r\n", cookie_tmp_str->str);
+    }
+    g_string_free(cookie_tmp_str, true);
+
+    // Blank line
+    g_string_append(str, "\r\n");
+
+    // Body
+    if (!is_head && server->response->body->len > 0) {
+        g_string_append(str, server->response->body->str);
+    }
+
+    return str;
+}
+
+/**
+ * Foreach handler that appends a single header line to the GString.
+ */
+void _append_header_to_string(gpointer key, gpointer val, gpointer data) {
+    g_string_append_printf((GString*)data, "%s: %s\r\n", (char*)key, (char*)val);
+}
+
+/**
+ * Foreach handler that joins all Set-Cookie values for a single
+ * header value string.
+ */
+void _cookie_joiner(gpointer key, gpointer val, gpointer data) {
+    char* _key = (char*)key;
+    char* _val = (char*)val;
+    GString* str = (GString*)data;
+
+    if (str->len > 0) {
+        g_string_append(str, "; ");
+    }
+
+    if (!g_ascii_strcasecmp(_val, "")) {
+        g_string_append(str, _key);
+    } else {
+        g_string_append_printf(str, "%s=%s", _key, _val);
+    }
+}
+
+/**
  * Creates a dictionary to store default responses for each status code.
  * These can be overwritten later.
  */

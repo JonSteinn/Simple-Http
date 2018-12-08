@@ -458,4 +458,6 @@ struct ____mzQWuRLpvb____HdsFYMewNA____ {
 
 extern const struct ____mzQWuRLpvb____HdsFYMewNA____ status_code;
 
+const char* get_status_code_name(const int code);
+
 #endif
