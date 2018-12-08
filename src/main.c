@@ -45,9 +45,9 @@ int32_t main(int32_t argc, char** argv) {
     
     // Add routes here
     add_route(&server, METHOD_GET, "", &t1);
-    add_route(&server, METHOD_GET, "a/b", &t2);
-    add_route(&server, METHOD_GET, "a/b/{arg}/c/{arg}", &t3);
-    add_route(&server, METHOD_GET, "{arg}", &t4);
+    //add_route(&server, METHOD_GET, "a/b", &t2);
+    //add_route(&server, METHOD_GET, "a/b/{arg}/c/{arg}", &t3);
+    //add_route(&server, METHOD_GET, "{arg}", &t4);
 
     start_server(&server);
     destroy_server(&server);

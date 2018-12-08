@@ -34,7 +34,6 @@ void _find_static_files_recursive(DIR* dir, const char* prefix, StaticFiles* sta
             GString* tmp = g_string_new(prefix);
             g_string_append_printf(tmp, "/%s", dp->d_name);
             if (_valid_extension(tmp, static_files->supported_media_types)) {
-                printf("%s\n", tmp->str);
                 g_hash_table_insert(static_files->files, g_strdup(tmp->str + 13), &static_files->has_static);
             }
             g_string_free(tmp, true);
@@ -53,7 +52,7 @@ void _find_static_files_recursive(DIR* dir, const char* prefix, StaticFiles* sta
 
 bool _valid_extension(GString* file, GHashTable* supported) {
     size_t i = 0;
-    for (i = file->len - 1; i >= 0; i--) {
+    for (i = file->len - 1; ; i--) {
         if (file->str[i] == '.') {
             if (i == file->len - 1) {
                 return false;
@@ -66,6 +65,9 @@ bool _valid_extension(GString* file, GHashTable* supported) {
         } else if (file->str[i] == '/') {
             return false;
         }
+        if (i == 0) {
+            break;
+        }
     }
     return false;
 }
@@ -77,6 +79,69 @@ void destroy_static_files(Server* server) {
     }
     free(server->static_files);
 }
+
+
+
+
+bool read_file_into_response(Server* server) {    
+    if (server->request->method != METHOD_GET || g_hash_table_lookup(server->static_files->files, server->request->path->str) == NULL) {
+        return false;
+    }
+
+
+    // Open file
+    FILE* file = _open_file(server->request->path->str);
+    if (!file) {
+        return false;
+    }
+
+    // Get memtype
+    char* mem_type = NULL;
+    for (size_t i = server->request->path->len - 1; ; i--) {
+        if (server->request->path->str[i] == '.') {
+            if (i < server->request->path->len - 1) {
+                mem_type = (char*)g_hash_table_lookup(server->static_files->supported_media_types, server->request->path->str + (i+1));
+            }
+            break;
+        }
+        if (i == 0) {
+            break;
+        }
+    }
+    if (mem_type == NULL) {
+        return false;
+    }
+
+    // Read file into body
+    size_t len = 0;
+    ssize_t read;
+    char* line = NULL;
+    while ((read = getline(&line, &len, file)) != EOF) {
+        g_string_append(server->response->body, line);
+    }
+
+    // cleanup
+    if (line) {
+        free(line);
+    }
+    if (file) {
+        fclose(file);
+    }
+
+    g_hash_table_insert(server->response->headers, g_strdup("Content-Type"), g_strdup(mem_type));
+    // TODO: Add cache     
+
+    return true;
+}
+
+FILE* _open_file(const char* file_path) {
+    GString* full_path = g_string_new("./src/static/");
+    g_string_append(full_path, file_path);
+    FILE* file = fopen(full_path->str, "r");
+    g_string_free(full_path, true);
+    return file;
+}
+
 
 
 /* STAT:

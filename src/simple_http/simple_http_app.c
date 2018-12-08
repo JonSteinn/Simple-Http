@@ -99,6 +99,7 @@ void start_server(Server* server) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
                                 // TODO: REMOVE CLIENT <by disconnect> ? [read some RFC]
                             } else {
+                                // TODO: Log requests here
 
                                 // Convert head to get
                                 bool head = server->request->method == METHOD_HEAD;
@@ -106,14 +107,14 @@ void start_server(Server* server) {
                                     server->request->method = METHOD_GET;
                                 }
                                 
-                                if (find_and_call_route_callback(server)) {
+                                if (find_and_call_route_callback(server) || (server->request->method == METHOD_GET && read_file_into_response(server))) {
                                     set_default_response_headlers(server);
                                     GString* response = convert_response_to_string(server, head);
                                     send_g_string(server, fd, response);
                                     g_string_free(response, true);
                                 } else {
-                                    // TODO: Check if static file...
                                     send_default(server, fd, status_code.NOT_FOUND);
+                                    
                                 }
 
                                 // TODO:

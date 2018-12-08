@@ -8,9 +8,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <string.h>
+#include <stdio.h>
+#include <glib.h>
 
+#include "types/simple_http_type_response.h"
+#include "types/simple_http_type_method.h"
 #include "types/simple_http_type_server.h"
 #include "types/simple_http_type_static_files.h"
+#include "simple_http_server_response.h"
 
 void init_static_files(Server* server);
 void _add_supported_media_types(Server* server);
@@ -19,6 +25,8 @@ void _find_static_files_recursive(DIR* dir, const char* prefix, StaticFiles* sta
 bool _valid_extension(GString* file, GHashTable* supported);
 void destroy_static_files(Server* server);
 
+bool read_file_into_response(Server* server);
+FILE* _open_file(const char* file_path);
 
 #endif
 
