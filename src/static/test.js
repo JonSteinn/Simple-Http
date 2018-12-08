@@ -1,0 +1,5 @@
+
+
+const funkyfunc = () => {
+    return true; 
+};

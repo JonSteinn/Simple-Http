@@ -33,6 +33,7 @@ void config_server(Server* server, char* path, int32_t argc, char** argv) {
     init_resposne(server);
     init_io(server);
     init_routes(server);
+    init_static_files(server);
 }
 
 /**
@@ -111,6 +112,7 @@ void start_server(Server* server) {
                                     send_g_string(server, fd, response);
                                     g_string_free(response, true);
                                 } else {
+                                    // TODO: Check if static file...
                                     send_default(server, fd, status_code.NOT_FOUND);
                                 }
 
@@ -153,6 +155,7 @@ void destroy_server(Server* server) {
     destroy_request(server);
     destroy_io(server);
     destroy_routes(server);
+    destroy_static_files(server);
 }
 
 

@@ -9,6 +9,7 @@
 #include "simple_http_type_polling.h"
 #include "simple_http_type_response.h"
 #include "simple_http_type_request.h"
+#include "simple_http_type_static_files.h"
 
 /**
  * Data structure for the server it self. It contains
@@ -50,6 +51,8 @@
  *      An array of dictionaries, one for each supported
  *      http method type. It contains all defined routes
  *      that the server supports.
+ *  static_files
+ *      The support system for static file serving
  */
 typedef struct {
     Config*                 cfg;
@@ -62,6 +65,7 @@ typedef struct {
     Response*               response;
     Request*                request;
     GHashTable**            routes;
+    StaticFiles*            static_files;
 } Server;
 
 #endif
