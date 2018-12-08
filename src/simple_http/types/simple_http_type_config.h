@@ -26,6 +26,8 @@
  *  inactive_timeout
  *      How long clients can go without making a request
  *      before they are removed and disconnected
+ *  server_name
+ *      The name of the server
  */
 typedef struct {
     bool        debug;
@@ -36,6 +38,7 @@ typedef struct {
     int32_t     poll_timeout;
     uint32_t    ip;
     int32_t     inactive_timeout;
+    char*       server_name;
 } Config;
 
 #endif

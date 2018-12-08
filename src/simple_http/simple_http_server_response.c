@@ -36,6 +36,34 @@ void destroy_response(Server* server) {
 }
 
 /**
+ * Add headers to the response that the server wants to
+ * handle itself. These include Content-Length (length
+ * of the body), Date (time of response) and Server
+ * (name of the server). If the framework user has
+ * already set these headers, they are overwritten.
+ */
+void set_default_response_headlers(Server* server) {
+    // Conrent-Length
+    GString* tmp_str = g_string_new(NULL);
+    g_string_append_printf(tmp_str, "%zu", server->response->body->len);
+    g_hash_table_insert(server->response->headers, g_strdup("Content-Length"), g_strdup(tmp_str->str));
+    g_string_free(tmp_str, true);
+
+    // Date
+    time_t rawtime;
+    struct tm* timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    char timestamp[30];
+    memset(timestamp, 0, sizeof(timestamp));
+    strftime(timestamp, 30, "%a, %d %b %Y %X GMT", timeinfo);
+    g_hash_table_insert(server->response->headers, g_strdup("Date"), g_strdup(timestamp));
+
+    // Server
+    g_hash_table_insert(server->response->headers, g_strdup("Server"), g_strdup(server->cfg->server_name));
+}
+
+/**
  * Creates a dictionary to store default responses for each status code.
  * These can be overwritten later.
  */

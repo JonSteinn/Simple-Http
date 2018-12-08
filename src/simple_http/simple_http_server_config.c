@@ -36,6 +36,7 @@ void _config_set_default(Config* cfg) {
     cfg->poll_timeout = 1000;
     cfg->ip = htonl(INADDR_ANY);
     cfg->inactive_timeout = 30;
+    cfg->server_name = g_strdup("SimpleHTTP");
 }
 
 /**
@@ -171,7 +172,7 @@ void _config_set(Config* cfg, GHashTable* settings) {
     _config_set_ip(cfg, (char*)g_hash_table_lookup(settings, "IP"));
     _config_set_poll_timeout(cfg, (char*)g_hash_table_lookup(settings, "POLL_TIMEOUT"));
     _config_set_inactive_timeout(cfg, (char*)g_hash_table_lookup(settings, "INACTIVE"));
-    //_config_XXX(cfg, (char*)g_hash_table_lookup(settings, "XXX"));
+    _config_set_server_name(cfg, (char*)g_hash_table_lookup(settings, "SERVER_NAME"));
     //_config_XXX(cfg, (char*)g_hash_table_lookup(settings, "XXX"));
     //_config_XXX(cfg, (char*)g_hash_table_lookup(settings, "XXX"));
     //_config_XXX(cfg, (char*)g_hash_table_lookup(settings, "XXX"));
@@ -315,6 +316,18 @@ void _config_set_inactive_timeout(Config* cfg, char* value) {
 }
 
 /**
+ * Sets the server's name if value is non-empty.
+ */
+void _config_set_server_name(Config* cfg, char* value) {
+    if (!value) {
+        return;
+    }
+
+    free(cfg->server_name);
+    cfg->server_name = g_strdup(value);
+}
+
+/**
  * Display the entire configuration.
  */
 void _config_display(Config* cfg) {
@@ -333,7 +346,7 @@ void _config_display(Config* cfg) {
 
     printf("  * Poll timeout: %d\n", cfg->poll_timeout);
     printf("  * Inactive client timeout: %d\n", cfg->inactive_timeout);
-    //printf("  * ", cfg->);
+    printf("  * Server name: %s\n", cfg->server_name);
     
     putchar('\n');
 }
@@ -342,5 +355,6 @@ void _config_display(Config* cfg) {
  * Deallocate (deep) the config struct.
  */
 void destroy_config(Server* server) {
+    free(server->cfg->server_name);
     free(server->cfg);
 }

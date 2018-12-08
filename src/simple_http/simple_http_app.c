@@ -94,24 +94,21 @@ void start_server(Server* server) {
                         if (transfer_complete) {
                             if (!parse_request(server, client->raw_request)) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
+                                // TODO: REMOVE ? [read some RFC]
                             } else { 
                                 if (find_and_call_route_callback(server)) {
-                                    // BEGIN TEMP:
+                                    set_default_response_headlers(server);
+                                    // GString* res = [PARSE_RESPONSE_OBJECT]
+                                    //send_g_string(server, fd, res);
 
-                                    GString* s = g_string_new(NULL);                                    
-                                    g_string_append_printf(s, "HTTP/1.1 %d %s\r\n", server->response->status_code, "OK"); // <--- missing: TODO--- int->name for status codes
-                                    void tmp_fn(gpointer k, gpointer v, gpointer d) {
-                                        g_string_append_printf((GString*)d, "%s: %s\r\n", (char*)k, (char*)v);
-                                    }
-                                    g_hash_table_foreach(server->response->headers, tmp_fn, s);
-                                    g_string_append_printf(s, "\r\n%s", server->response->body->str);
-                                    send_g_string(server, fd, s);
-                                    g_string_free(s, true);
-
-                                    // END
                                 } else {
                                     send_default(server, fd, status_code.NOT_FOUND);
                                 }
+
+                                // TODO:
+                                // POST-SEND PROCESS: 
+                                // Is it "Connection: Close" => remove
+                                // ETC
                             }
 
                             restart_request(server);
