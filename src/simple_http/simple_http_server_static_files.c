@@ -1,5 +1,10 @@
 #include "simple_http_server_static_files.h"
 
+/**
+ * Initialize static file system. It reads all file in static
+ * folder with supported file extension into memory so it knows
+ * which file it can serve.
+ */
 void init_static_files(Server* server) {
     server->static_files = (StaticFiles*)malloc(sizeof(StaticFiles));
 
@@ -15,18 +20,29 @@ void init_static_files(Server* server) {
     closedir(dir);
 }
 
+/**
+ * Fill map of supported media types.
+ */
 void _add_supported_media_types(Server* server) {
     server->static_files->supported_media_types = g_hash_table_new_full(g_str_hash, g_str_equal, free, free);
     g_hash_table_insert(server->static_files->supported_media_types, g_strdup("html"), g_strdup("text/html; charset=utf-8"));
     g_hash_table_insert(server->static_files->supported_media_types, g_strdup("js"), g_strdup("application/javascript; charset=utf-8"));
     g_hash_table_insert(server->static_files->supported_media_types, g_strdup("css"), g_strdup("text/css; charset=utf-8"));
-    g_hash_table_insert(server->static_files->supported_media_types, g_strdup("png"), g_strdup("image/png"));
-    g_hash_table_insert(server->static_files->supported_media_types, g_strdup("jpg"), g_strdup("image/jpeg"));
-    g_hash_table_insert(server->static_files->supported_media_types, g_strdup("ico"), g_strdup("image/x-icon"));
+
+    // Add more...
+    // Binaries could (or will even) need different handling
 }
 
+/**
+ * A function that does nothing for freeing a fake value for paths
+ * since it is suppose to be a hashset.
+ */
 void _no_free(__attribute__((unused)) gpointer mem) { }
 
+/**
+ * A recursive search for all files in the static folder
+ * of the supported list of file extension.
+ */
 void _find_static_files_recursive(DIR* dir, const char* prefix, StaticFiles* static_files) {
     struct dirent *dp;
     while ((dp = readdir(dir)) != NULL) {
@@ -50,6 +66,9 @@ void _find_static_files_recursive(DIR* dir, const char* prefix, StaticFiles* sta
     }
 }
 
+/**
+ * Check if a given file has a valid file extension.
+ */
 bool _valid_extension(GString* file, GHashTable* supported) {
     size_t i = 0;
     for (i = file->len - 1; ; i--) {
@@ -72,6 +91,9 @@ bool _valid_extension(GString* file, GHashTable* supported) {
     return false;
 }
 
+/**
+ * Memory cleanup for static system.
+ */
 void destroy_static_files(Server* server) {
     if (server->static_files->has_static) {
         g_hash_table_destroy(server->static_files->supported_media_types);
@@ -80,16 +102,21 @@ void destroy_static_files(Server* server) {
     free(server->static_files);
 }
 
-
-
-
+/**
+ * Read file into response if one is found at the
+ * given path. If so, true is returned. Otherwise
+ * we return false.
+ */
 bool read_file_into_response(Server* server) {    
-    if (server->request->method != METHOD_GET || g_hash_table_lookup(server->static_files->files, server->request->path->str) == NULL) {
+    if (!server->static_files->has_static || 
+        server->request->method != METHOD_GET || 
+        g_hash_table_lookup(server->static_files->files, server->request->path->str) == NULL) {
         return false;
     }
 
     // Path from src folder
     GString* full_path = _construct_full_path(server->request->path->str);
+
 
     // Open file
     FILE* file = fopen(full_path->str, "r");
@@ -119,41 +146,47 @@ bool read_file_into_response(Server* server) {
     }
 
     // Read file into body
-    size_t len = 0;
-    ssize_t read;
-    char* line = NULL;
-    while ((read = getline(&line, &len, file)) != EOF) {
-        g_string_append(server->response->body, line);
+    int c = 0;
+    while(( c = fgetc(file)) != EOF) {
+        g_string_append_c(server->response->body, (char)c);
     }
 
     // Add static file standard headers
     _add_file_headers(server, mem_type, full_path->str);
 
     // cleanup
-    if (line) {
-        free(line);
-    }
-    if (file) {
-        fclose(file);
-    }
+    fclose(file);
     g_string_free(full_path, true);
+
+    server->response->status_code = status_code.OK;
 
     return true;
 }
 
+/**
+ * Create the path with './src/static/' prepended so we
+ * can access it relative to where our program is run.
+ */
 GString* _construct_full_path(const char* file_path) {
     GString* full_path = g_string_new("./src/static/");
     g_string_append(full_path, file_path);
     return full_path;
 }
 
+/**
+ * Add Content-Type, Cache-Control and Last-Modified header to response.
+ */
 void _add_file_headers(Server* server, const char* mem_type, const char* full_path) {
     g_hash_table_insert(server->response->headers, g_strdup("Content-Type"), g_strdup(mem_type));
 
-    GString* max_age = g_string_new_len("max-age=", 20);
-    g_string_printf(max_age, "%d", server->cfg->cache_time);
-    g_hash_table_insert(server->response->headers, g_strdup("Cache-Control"), g_strdup(max_age->str));
-    g_string_free(max_age, true);
+    if (server->cfg->cache_time == 0) {
+        g_hash_table_insert(server->response->headers, g_strdup("Cache-Control"), g_strdup("no-cache"));
+    } else {
+        GString* max_age = g_string_new_len("max-age=", 20);
+        g_string_printf(max_age, "%d", server->cfg->cache_time);
+        g_hash_table_insert(server->response->headers, g_strdup("Cache-Control"), g_strdup(max_age->str));
+        g_string_free(max_age, true);
+    }
 
     struct stat statbuf;
     if (!stat(full_path, &statbuf)) {
@@ -166,11 +199,3 @@ void _add_file_headers(Server* server, const char* mem_type, const char* full_pa
         g_hash_table_insert(server->response->headers, g_strdup("Last-Modified"), g_strdup(timestamp));
     }
 }
-
-
-
-/* STAT:
-
-            
-
-*/

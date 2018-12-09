@@ -1,7 +1,13 @@
+/*************************************************************
+ * Written by: Jón Steinn Elíasson                           *
+ *                                                           *
+ * This file contains any logic to help serve static files   *
+ * to the client.                                            *
+ *************************************************************/
+
 #ifndef AMe618mW6x_SIMPLE_HTTP_SERVER_STATIC_FILES_H
 #define AMe618mW6x_SIMPLE_HTTP_SERVER_STATIC_FILES_H
 
-//#include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/types.h>
@@ -18,6 +24,7 @@
 #include "types/simple_http_type_server.h"
 #include "types/simple_http_type_static_files.h"
 #include "simple_http_server_response.h"
+#include "simple_http_status_codes.h"
 
 void init_static_files(Server* server);
 void _add_supported_media_types(Server* server);
