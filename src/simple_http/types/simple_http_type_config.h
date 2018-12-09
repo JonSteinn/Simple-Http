@@ -28,6 +28,8 @@
  *      before they are removed and disconnected
  *  server_name
  *      The name of the server
+ *  cache_time
+ *      How long the cache-time of static files should be
  */
 typedef struct {
     bool        debug;
@@ -39,6 +41,7 @@ typedef struct {
     uint32_t    ip;
     int32_t     inactive_timeout;
     char*       server_name;
+    int32_t     cache_time;
 } Config;
 
 #endif

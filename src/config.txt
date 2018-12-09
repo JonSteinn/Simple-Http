@@ -24,3 +24,6 @@ POLL_TIMEOUT=5000
 
 # How long can connection be open (s)
 INACTIVE=10
+
+# The max-age valeu in the header field [Cache-Control: max-age=...]
+STATIC_CACHE_TIME=600

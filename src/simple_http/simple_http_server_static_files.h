@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <glib.h>
 
+#include "types/simple_http_type_config.h"
 #include "types/simple_http_type_response.h"
 #include "types/simple_http_type_method.h"
 #include "types/simple_http_type_server.h"
@@ -26,7 +27,8 @@ bool _valid_extension(GString* file, GHashTable* supported);
 void destroy_static_files(Server* server);
 
 bool read_file_into_response(Server* server);
-FILE* _open_file(const char* file_path);
+GString* _construct_full_path(const char* file_path);
+void _add_file_headers(Server* server, const char* mem_type, const char* full_path);
 
 #endif
 

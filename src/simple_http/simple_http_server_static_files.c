@@ -88,10 +88,13 @@ bool read_file_into_response(Server* server) {
         return false;
     }
 
+    // Path from src folder
+    GString* full_path = _construct_full_path(server->request->path->str);
 
     // Open file
-    FILE* file = _open_file(server->request->path->str);
+    FILE* file = fopen(full_path->str, "r");
     if (!file) {
+        g_string_free(full_path, true);
         return false;
     }
 
@@ -108,7 +111,10 @@ bool read_file_into_response(Server* server) {
             break;
         }
     }
+
+    // If invalid memtype
     if (mem_type == NULL) {
+        g_string_free(full_path, true);
         return false;
     }
 
@@ -120,6 +126,9 @@ bool read_file_into_response(Server* server) {
         g_string_append(server->response->body, line);
     }
 
+    // Add static file standard headers
+    _add_file_headers(server, mem_type, full_path->str);
+
     // cleanup
     if (line) {
         free(line);
@@ -127,34 +136,41 @@ bool read_file_into_response(Server* server) {
     if (file) {
         fclose(file);
     }
-
-    g_hash_table_insert(server->response->headers, g_strdup("Content-Type"), g_strdup(mem_type));
-    // TODO: Add cache     
+    g_string_free(full_path, true);
 
     return true;
 }
 
-FILE* _open_file(const char* file_path) {
+GString* _construct_full_path(const char* file_path) {
     GString* full_path = g_string_new("./src/static/");
     g_string_append(full_path, file_path);
-    FILE* file = fopen(full_path->str, "r");
-    g_string_free(full_path, true);
-    return file;
+    return full_path;
+}
+
+void _add_file_headers(Server* server, const char* mem_type, const char* full_path) {
+    g_hash_table_insert(server->response->headers, g_strdup("Content-Type"), g_strdup(mem_type));
+
+    GString* max_age = g_string_new_len("max-age=", 20);
+    g_string_printf(max_age, "%d", server->cfg->cache_time);
+    g_hash_table_insert(server->response->headers, g_strdup("Cache-Control"), g_strdup(max_age->str));
+    g_string_free(max_age, true);
+
+    struct stat statbuf;
+    if (!stat(full_path, &statbuf)) {
+        time_t t = statbuf.st_mtime;
+        struct tm* timeinfo;
+        timeinfo = localtime(&t);
+        char timestamp[30];
+        memset(timestamp, 0, sizeof(timestamp));
+        strftime(timestamp, 30, "%a, %d %b %Y %X GMT", timeinfo);
+        g_hash_table_insert(server->response->headers, g_strdup("Last-Modified"), g_strdup(timestamp));
+    }
 }
 
 
 
 /* STAT:
 
-            struct stat statbuf;
-            if (!stat("./src/static/test.js", &statbuf)) {
-                time_t t = statbuf.st_mtime;
-                struct tm* timeinfo;
-                timeinfo = localtime(&t);
-                char timestamp[30];
-                memset(timestamp, 0, sizeof(timestamp));
-                strftime(timestamp, 30, "%a, %d %b %Y %X GMT", timeinfo);
-                g_hash_table_insert(collector, g_strdup(x->str + 13), g_strdup(timestamp));
-            }
+            
 
 */

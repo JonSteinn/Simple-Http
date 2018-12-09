@@ -37,6 +37,7 @@ void _config_set_default(Config* cfg) {
     cfg->ip = htonl(INADDR_ANY);
     cfg->inactive_timeout = 30;
     cfg->server_name = g_strdup("SimpleHTTP");
+    cfg->cache_time = 600;
 }
 
 /**
@@ -328,6 +329,27 @@ void _config_set_server_name(Config* cfg, char* value) {
 }
 
 /**
+ * Sets the server's cache time for static pages.
+ */
+void _config_set_static_cache_time(Config* cfg, char* value) {
+    if (!value) {
+        return;
+    }
+
+    int32_t c_time = strtoul(value, NULL, 0);
+    if (errno == ERANGE || c_time < 0) {
+        return;
+    }
+
+    int seconds_in_a_year = 60 * 60 * 24 * 365;
+    if (c_time > seconds_in_a_year) {
+        c_time = seconds_in_a_year;
+    }
+
+    cfg->inactive_timeout = seconds_in_a_year;
+}
+
+/**
  * Display the entire configuration.
  */
 void _config_display(Config* cfg) {
@@ -347,6 +369,7 @@ void _config_display(Config* cfg) {
     printf("  * Poll timeout: %d\n", cfg->poll_timeout);
     printf("  * Inactive client timeout: %d\n", cfg->inactive_timeout);
     printf("  * Server name: %s\n", cfg->server_name);
+    printf("  * Static cache time: %d\n", cfg->cache_time);
     
     putchar('\n');
 }

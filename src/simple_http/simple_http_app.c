@@ -158,18 +158,3 @@ void destroy_server(Server* server) {
     destroy_routes(server);
     destroy_static_files(server);
 }
-
-
-
-/*
-show fd array in loop...
-        //##############################
-        for (int i = 0; i < srv->cfg->max_clients + 1; i++) {
-            if (srv->poll->fds[i].fd < 0) printf("## ");
-            else if (srv->poll->fds[i].fd < 10) printf("0%d ", srv->poll->fds[i].fd);
-            else printf("%d ", srv->poll->fds[i].fd);
-        }
-        putchar('\n');
-        fflush(stdout);
-        //##############################
-*/

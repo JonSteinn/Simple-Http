@@ -1,9 +1,9 @@
 # Simple HTTP
 
 ## TODOs
-  - Post send proccess
-  - Static file support (at least html, cs, js, images)
-  - Global response header settings (headers for all response...)
-  - Customize default responses
-  - Logging
+  - Post send proccess [should i disconnect client based on request, etc.]
+  - Global response header settings [Add headers that applies to all requests]
+  - Customize default responses [Just override the default response, for example if you want them as json instead of html]
+  - Logging [Log <client ip:port> <route> <method> <status code response>]
   - Write readme
+  - Create video demo

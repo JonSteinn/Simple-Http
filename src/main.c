@@ -4,7 +4,7 @@
 RouteHandler(t1, {    
     res->status_code = status_code.OK;
     g_hash_table_insert(res->headers, g_strdup("Content-Type"), g_strdup("text/html; charset=utf-8"));
-    g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>Testing...1<br><a href=\"/a/b\">click me</a></body></html>");    
+    g_string_append(res->body, "<!DOCTYPE html><html><head><title>Test-Title</title></head><body>Testing...1<br><a href=\"/index.html\">click me</a></body></html>");    
     GString* str = g_string_new(NULL);
     g_string_append_printf(str, "%zu", res->body->len);
     g_hash_table_insert(res->headers, g_strdup("Content-Length"), g_strdup(str->str));

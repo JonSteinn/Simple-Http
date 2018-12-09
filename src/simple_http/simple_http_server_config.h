@@ -38,6 +38,7 @@ void _config_set_ip(Config* cfg, char* value);
 void _config_set_poll_timeout(Config* cfg, char* value);
 void _config_set_inactive_timeout(Config* cfg, char* value);
 void _config_set_server_name(Config* cfg, char* value);
+void _config_set_static_cache_time(Config* cfg, char* value);
 // <-------- SETTERS
 void _config_display(Config* cfg);
 void destroy_config(Server* server);
