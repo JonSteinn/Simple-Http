@@ -34,4 +34,6 @@ bool _parse_start_line(Server* server, char* line);
 void _parse_headers(Server* server, char** lines);
 void _parse_cookie(Server* server, char* cookie);
 
+bool keep_alive(Server* server);
+
 #endif

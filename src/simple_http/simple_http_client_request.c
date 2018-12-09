@@ -295,3 +295,16 @@ void _parse_cookie(Server* server, char* cookie) {
     }
     g_strfreev(cookies);
 }
+
+/**
+ * Check if the connection is persistent.
+ */
+bool keep_alive(Server* server) {
+    char* connection = g_hash_table_lookup(server->request->headers, "Connection");
+
+    if (server->request->version = VERSION_10) {
+        return connection != NULL && !g_ascii_strcasecmp(connection, "keep-alive");
+    } else {
+        return connection == NULL || g_ascii_strcasecmp(connection, "close");
+    }
+}

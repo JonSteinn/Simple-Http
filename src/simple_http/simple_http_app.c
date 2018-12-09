@@ -97,10 +97,8 @@ void start_server(Server* server) {
                         if (transfer_complete) {
                             if (!parse_request(server, client->raw_request)) {
                                 send_default(server, fd, status_code.BAD_REQUEST);
-                                // TODO: REMOVE CLIENT <by disconnect> ? [read some RFC]
+                                remove_client_from_pool(server, i, fd);
                             } else {
-                                // TODO: Log requests here
-
                                 // Convert head to get
                                 bool head = server->request->method == METHOD_HEAD;
                                 if (head) {
@@ -117,10 +115,9 @@ void start_server(Server* server) {
                                     
                                 }
 
-                                // TODO:
-                                // POST-SEND PROCESS: 
-                                // Is it "Connection: Close" => remove
-                                // ETC
+                                if (!keep_alive(server)) {
+                                    remove_client_from_pool(server, i, fd);
+                                }
                             }
 
                             restart_request(server);
