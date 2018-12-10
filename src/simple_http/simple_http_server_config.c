@@ -19,9 +19,7 @@ void init_config(Server* server, char* path, int32_t argc, char** argv) {
     
     g_hash_table_destroy(settings);
 
-    if (server->cfg->debug) {
-        _config_display(server->cfg);
-    }
+    sh_print_config(server);
 }
 
 /**
@@ -347,31 +345,6 @@ void _config_set_static_cache_time(Config* cfg, char* value) {
     }
 
     cfg->inactive_timeout = seconds_in_a_year;
-}
-
-/**
- * Display the entire configuration.
- */
-void _config_display(Config* cfg) {
-    printf("Configuration:\n");
-
-    // Each field
-    printf("  * Debug mode: %s\n", cfg->debug ? "True" : "False");
-    printf("  * Port: %hu\n", cfg->port);
-    printf("  * Max queued: %d\n", cfg->max_queued);
-    printf("  * Max clients: %d\n", cfg->max_clients);
-    printf("  * Buffer size: %d\n", cfg->buffer_size);
-
-    char ip_str[16];
-    inet_ntop(AF_INET, &(cfg->ip), ip_str, INET_ADDRSTRLEN);
-    printf("  * IP: %s\n", ip_str);
-
-    printf("  * Poll timeout: %d\n", cfg->poll_timeout);
-    printf("  * Inactive client timeout: %d\n", cfg->inactive_timeout);
-    printf("  * Server name: %s\n", cfg->server_name);
-    printf("  * Static cache time: %d\n", cfg->cache_time);
-    
-    putchar('\n');
 }
 
 /**

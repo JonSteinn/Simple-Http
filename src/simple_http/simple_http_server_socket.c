@@ -11,9 +11,8 @@ void init_socket(Server* server, bool* run) {
     if (server->fd == -1) {
         *run = false;
     }
-    if (server->cfg->debug) {
-        _socket_display(server);
-    }
+    
+    sh_print_socket(server);
 }
 
 /**
@@ -36,7 +35,7 @@ void _initialize_address(Server* server) {
 void _setup_socket(Server* server) {
     server->fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server->fd < 0) {
-        perror("Failed to create socket!\n");
+        sh_print_socket_error();
         server->fd = -1;
     }
 }
@@ -75,7 +74,7 @@ void _bind_socket(Server* server) {
     }
 
     if (server->fd < 0) {
-        perror("Failed to bind socket!");
+        sh_print_bind_error();
     }
 }
 
@@ -85,19 +84,8 @@ void _bind_socket(Server* server) {
  */
 void _listen_on_socket(Server* server) {
     if (server->fd > 0 && listen(server->fd, server->cfg->max_queued) < 0) {
-        perror("Failed to listen on socket!\n");
+        sh_print_listen_error();
         server->fd = -1;
-    }
-}
-
-/**
- * Display information on the initialized socket.
- */
-void _socket_display(Server* server) {
-    if (server->fd < 0) {
-        printf("Error while initializing socket!\n");
-    } else {
-        printf("Socket's fd = %d\n", server->fd);
     }
 }
 

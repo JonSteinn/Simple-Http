@@ -19,6 +19,8 @@
 #include "types/simple_http_type_config.h"
 #include "types/simple_http_type_server.h"
 
+#include "simple_http_server_prints.h"
+
 void init_poll(Server* server);
 bool has_event(Server* server, bool* run);
 bool new_client_event(Server* server);

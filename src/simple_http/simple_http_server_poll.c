@@ -29,9 +29,7 @@ void init_poll(Server* server) {
 bool has_event(Server* server, bool* run) {
     int32_t p = poll(server->poll->fds, server->poll->fds_in_use, server->cfg->poll_timeout);
     if (p < 0) {
-        if (*run) {
-            perror("Poll failed!\n");
-        }
+        sh_print_poll_error(*run);
         return (*run = false);
     }
     return p != 0;
@@ -59,12 +57,14 @@ bool existing_client_event(int32_t index, Server* server) {
  */
 void compress_fds(Server* server) {
     if (server->poll->compress) {
+        sh_print_fd_array(server, true);
         // TODO: Improve this algorithms
         /* Two pointers for copying would improve this */
         _compress_fds_from_right_end(server);
         _compress_fds_from_left_end(server);
-        _remove_excessive_fds(server);    
+        _remove_excessive_fds(server);
         server->poll->compress = false;
+        sh_print_fd_array(server, false);
     }
 }
 

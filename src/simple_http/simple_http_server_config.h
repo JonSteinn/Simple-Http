@@ -22,6 +22,8 @@
 #include "types/simple_http_type_config.h"
 #include "types/simple_http_type_server.h"
 
+#include "simple_http_server_prints.h"
+
 void init_config(Server* server, char* path, int32_t argc, char** argv);
 void _config_set_default(Config* cfg);
 void _config_set_from_file(GHashTable* settings, char* path);
@@ -40,7 +42,6 @@ void _config_set_inactive_timeout(Config* cfg, char* value);
 void _config_set_server_name(Config* cfg, char* value);
 void _config_set_static_cache_time(Config* cfg, char* value);
 // <-------- SETTERS
-void _config_display(Config* cfg);
 void destroy_config(Server* server);
 
 #endif

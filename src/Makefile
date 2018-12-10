@@ -23,6 +23,7 @@ REQUEST = $(PREFIX_NAME)client_request
 ROUTE = $(PREFIX_NAME)server_routes
 STATIC = $(PREFIX_NAME)server_static_files
 LOG = $(PREFIX_NAME)server_logging
+PRINT = $(PREFIX_NAME)server_prints
 # Combination
 DEPENDENCIES = \
 	$(APP).o \
@@ -37,7 +38,8 @@ DEPENDENCIES = \
 	$(REQUEST).o \
 	$(ROUTE).o \
 	$(STATIC).o \
-	$(LOG).o
+	$(LOG).o \
+	$(PRINT).o
 
 # Compile function with required flasg
 define COMPILE
@@ -68,6 +70,7 @@ $(call COMPILE,REQUEST)
 $(call COMPILE,ROUTE)
 $(call COMPILE,STATIC)
 $(call COMPILE,LOG)
+$(call COMPILE,PRINT)
 
 # Removal of .o files
 clean:
