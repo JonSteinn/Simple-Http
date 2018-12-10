@@ -302,7 +302,7 @@ void _parse_cookie(Server* server, char* cookie) {
 bool keep_alive(Server* server) {
     char* connection = g_hash_table_lookup(server->request->headers, "Connection");
 
-    if (server->request->version = VERSION_10) {
+    if (server->request->version == VERSION_10) {
         return connection != NULL && !g_ascii_strcasecmp(connection, "keep-alive");
     } else {
         return connection == NULL || g_ascii_strcasecmp(connection, "close");

@@ -39,7 +39,6 @@ RouteHandler(t4, {
 })
 
 int32_t main(int32_t argc, char** argv) {
-
     Server server;
     config_server(&server, "./src/config.txt", argc, argv);
     
@@ -97,7 +96,6 @@ nUsjDPt2Jd
 OQKyd6stoj
 H8naW98OHO
 oN9vz94MGI
-H6nJaFCP3h
 dtOJP71yAE
 Wn1BDuc5nn
 hA7hSVPREh

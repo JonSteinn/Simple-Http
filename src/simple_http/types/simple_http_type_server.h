@@ -1,6 +1,7 @@
 #ifndef rsip4NRX14_SIMPLE_HTTP_SERVER_TYPE_H
 #define rsip4NRX14_SIMPLE_HTTP_SERVER_TYPE_H
 
+#include <stdio.h>
 #include <stdint.h>
 #include <netinet/in.h>
 #include <glib.h>
@@ -53,6 +54,8 @@
  *      that the server supports.
  *  static_files
  *      The support system for static file serving
+ *  logger
+ *      The file to which logs are written
  */
 typedef struct {
     Config*                 cfg;
@@ -66,6 +69,7 @@ typedef struct {
     Request*                request;
     GHashTable**            routes;
     StaticFiles*            static_files;
+    FILE*                   logger;
 } Server;
 
 #endif

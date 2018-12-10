@@ -27,10 +27,14 @@
 #include "simple_http_client_request.h"
 #include "simple_http_server_routes.h"
 #include "simple_http_server_static_files.h"
+#include "simple_http_server_logging.h"
 
 void config_server(Server* server, char* path, int32_t argc, char** argv);
 void add_route(Server* server, Method method, const char* path, route_function function);
 void start_server(Server* server);
 void destroy_server(Server* server);
+
+void _proccess_client_event(Server* server, int32_t i);
+void _answer_client(Server* server, Client* client, int32_t fd, int32_t i);
 
 #endif

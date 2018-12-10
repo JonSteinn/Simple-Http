@@ -22,6 +22,7 @@ S_CODE = $(PREFIX_NAME)status_codes
 REQUEST = $(PREFIX_NAME)client_request
 ROUTE = $(PREFIX_NAME)server_routes
 STATIC = $(PREFIX_NAME)server_static_files
+LOG = $(PREFIX_NAME)server_logging
 # Combination
 DEPENDENCIES = \
 	$(APP).o \
@@ -35,7 +36,8 @@ DEPENDENCIES = \
 	$(S_CODE).o \
 	$(REQUEST).o \
 	$(ROUTE).o \
-	$(STATIC).o
+	$(STATIC).o \
+	$(LOG).o
 
 # Compile function with required flasg
 define COMPILE
@@ -65,6 +67,7 @@ $(call COMPILE,S_CODE)
 $(call COMPILE,REQUEST)
 $(call COMPILE,ROUTE)
 $(call COMPILE,STATIC)
+$(call COMPILE,LOG)
 
 # Removal of .o files
 clean:

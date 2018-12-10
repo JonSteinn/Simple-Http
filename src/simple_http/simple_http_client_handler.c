@@ -32,10 +32,7 @@ void add_new_client(Server* server) {
     }
 
     if (server->poll->fds_in_use == server->cfg->max_clients + 1) {
-        if (server->cfg->debug) {
-            printf("No room for new client");
-            fflush(stdout);
-        }
+        //SH_DEBUG(server, "No room for a new client\n");
         send_default(server, fd, status_code.SERVICE_UNAVAILABLE);
         _free_client((gpointer)new_client);
         close(fd);
@@ -65,10 +62,7 @@ int32_t _accept_connection(Server* server, Client* client) {
     int32_t fd = accept(server->fd, (struct sockaddr*)&client->address, &len);
     if (fd < 0) {
         _free_client((gpointer)client);
-        if (server->cfg->debug) {
-            perror("Fail to accept connection!\n");
-            fflush(stdout);   
-        }
+        //SH_DEBUG(server, "Failed to accept connection\n");
         return -1;
     }
     return fd;
