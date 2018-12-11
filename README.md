@@ -1,6 +1,6 @@
 # Simple HTTP
 
 ## TODOs
-  - Customize default responses [Just override the default response, for example if you want them as json instead of html]
+  - Createa a better interface for user to deal with responses...
   - Write readme
   - Create video demo
