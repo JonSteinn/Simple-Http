@@ -1,8 +1,9 @@
 # Simple HTTP
-A VERY SIMPLE http server framework in C using unix socket API and glib. **This is in no way meant to be used, safe, or confine to the RFCs** (I'm way too lazy to read through that). This is just made for fun, looking under the hood and exploring the unix socket API. GLib er used for hash tables and strings.
+A VERY SIMPLE http framework in C using unix socket API and glib. **This is in no way meant to be used, safe, or confine to the RFCs**. This is just made for fun, looking under the hood and exploring the unix socket API. GLib er used for hash tables and strings.
 
 ## Video demo
-TODO
+(I accidentally placed body inside header in some places)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/qSeQBJqXa98/maxresdefault.jpg)](https://www.youtube.com/watch?v=ocDPL8nYT2o)
 
 ## Requirments
 This server is only unix and gcc compatable and requires glib2 to run.
@@ -16,7 +17,7 @@ There are bash scripts to run the program. They extend arguments to the program.
 ```
 
 ## Features
-The server uses multiplexing to handle multiple clients at once. Persistent connections are timed out after a set time. From the perspective of the framework user, there are three main features.
+The server uses multiplexing to handle multiple clients at once. Persistent connections are timed out after a set time. From the perspective of the framework user, there are four main features.
  * Add route handling function at some route
  * Edit default responses for a given status code
  * Edit the configuration file
