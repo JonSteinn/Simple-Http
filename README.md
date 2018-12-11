@@ -1,5 +1,5 @@
 # Simple HTTP
-A VERY SIMPLE http framework in C using unix socket API and glib. **This is in no way meant to be used, safe, or confine to the RFCs**. This is just made for fun, looking under the hood and exploring the unix socket API. GLib er used for hash tables and strings.
+A VERY SIMPLE http framework in C using unix socket API and glib. **This is in no way meant to be used, safe, or confine to the RFCs**. This is just made for fun, to explore the unix socket API. GLib er used for hash tables and strings.
 
 ## Video demo
 (I accidentally placed body inside header in some places)
