@@ -1,3 +1,10 @@
+/*************************************************************
+ * Written by: Jón Steinn Elíasson                           *
+ *                                                           *
+ * Stores routes and handling functions set by the framework *
+ * and finds and validates routes.                           *
+ *************************************************************/
+
 #ifndef Fxjyb5PNWQ_SIMPLE_HTTP_SERVER_ROUTES_H
 #define Fxjyb5PNWQ_SIMPLE_HTTP_SERVER_ROUTES_H
 
@@ -9,21 +16,13 @@
 #include "types/simple_http_type_method.h"
 #include "types/simple_http_type_route.h"
 #include "types/simple_http_type_server.h"
+
 #include "simple_http_util.h"
 
 void init_routes(Server* server);
-void _free_routes(gpointer mem);
 void destroy_routes(Server* server);
-
 bool add_new_route(Server* server, Method method, route_function function, const char* path);
-void _home_add_new_route(GHashTable* dictionary, route_function function);
-route_part* _alloc_new_route_part(bool init_next, route_function function);
-bool _sub_add_new_route(char** parts, GHashTable* dictionary, route_function function);
-
-bool find_and_call_route_callback(Server* server);
-bool _home_find_and_call_route_callback(Server* server, GHashTable* dictionary);
-bool _sub_find_and_call_route_callback(Server* server, GHashTable* dictionary, char** parts);
-
+bool find_and_call_route_callback(Server* server);void _free_routes(gpointer mem);
 bool validate_route(const char* str);
 
 #endif

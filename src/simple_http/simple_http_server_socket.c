@@ -1,5 +1,13 @@
 #include "simple_http_server_socket.h"
 
+#define NO_FD -1
+
+// 'Private' function definitions
+void _initialize_address(Server* server);
+void _setup_socket(Server* server);
+void _bind_socket(Server* server);
+void _listen_on_socket(Server* server);
+
 /**
  * Initialize the socket for the server.
  */
@@ -8,12 +16,25 @@ void init_socket(Server* server, bool* run) {
     _setup_socket(server);
     _bind_socket(server);
     _listen_on_socket(server);
-    if (server->fd == -1) {
+    if (server->fd == NO_FD) {
         *run = false;
     }
     
     sh_print_socket(server);
 }
+
+/**
+ * Deep cleanup for socket related variables for server.
+ */
+void destroy_socket(Server* server) {
+    if (server->fd != NO_FD) {
+        close(server->fd);
+    }
+}
+
+/////////////////////
+// Private helpers //
+/////////////////////
 
 /**
  * Set the address variable (sockaddr_in) to
@@ -36,7 +57,7 @@ void _setup_socket(Server* server) {
     server->fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server->fd < 0) {
         sh_print_socket_error();
-        server->fd = -1;
+        server->fd = NO_FD;
     }
 }
 
@@ -45,7 +66,7 @@ void _setup_socket(Server* server) {
  * then the server's fd is set to -1.
  */
 void _bind_socket(Server* server) {
-    if (server->fd == -1) {
+    if (server->fd == NO_FD) {
         return;
     }
 
@@ -61,14 +82,14 @@ void _bind_socket(Server* server) {
             // Socket in use
             tries--;
             if (tries == 0) {
-                server->fd = -1;
+                server->fd = NO_FD;
                 break;
             }
             server->cfg->port = server->cfg->port == 65535 ? 1024 : server->cfg->port + 1;
             server->address.sin_port = htons(server->cfg->port);
         } else {
             // Error other then socket in use
-            server->fd = -1;
+            server->fd = NO_FD;
             break;
         }
     }
@@ -85,15 +106,8 @@ void _bind_socket(Server* server) {
 void _listen_on_socket(Server* server) {
     if (server->fd > 0 && listen(server->fd, server->cfg->max_queued) < 0) {
         sh_print_listen_error();
-        server->fd = -1;
+        server->fd = NO_FD;
     }
 }
 
-/**
- * Deep cleanup for socket related variables for server.
- */
-void destroy_socket(Server* server) {
-    if (server->fd != -1) {
-        close(server->fd);
-    }
-}
+#undef NO_FD

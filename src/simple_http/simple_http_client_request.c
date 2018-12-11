@@ -1,5 +1,14 @@
 #include "simple_http_client_request.h"
 
+// 'Private' function definitions
+bool _set_http_version(Server* server, char* version);
+void _parse_queries(Server* server, char* query_string);
+bool _parse_url(Server* server, char* url);
+bool _set_http_method(Server* server, char* method);
+bool _parse_start_line(Server* server, char* line);
+void _parse_headers(Server* server, char** lines);
+void _parse_cookie(Server* server, char* cookie);
+
 /**
  * Initialize the single request object that the server
  * holds. This requires a call of destroy_request to
@@ -80,6 +89,23 @@ bool parse_request(Server* server, GString* raw_request) {
 
     return true;
 }
+
+/**
+ * Check if the connection is persistent.
+ */
+bool keep_alive(Server* server) {
+    char* connection = g_hash_table_lookup(server->request->headers, "Connection");
+
+    if (server->request->version == VERSION_10) {
+        return connection != NULL && !g_ascii_strcasecmp(connection, "keep-alive");
+    } else {
+        return connection == NULL || g_ascii_strcasecmp(connection, "close");
+    }
+}
+
+/////////////////////
+// Private helpers //
+/////////////////////
 
 /**
  * Parse the start line. It should contain method, url and version,
@@ -294,17 +320,4 @@ void _parse_cookie(Server* server, char* cookie) {
         }
     }
     g_strfreev(cookies);
-}
-
-/**
- * Check if the connection is persistent.
- */
-bool keep_alive(Server* server) {
-    char* connection = g_hash_table_lookup(server->request->headers, "Connection");
-
-    if (server->request->version == VERSION_10) {
-        return connection != NULL && !g_ascii_strcasecmp(connection, "keep-alive");
-    } else {
-        return connection == NULL || g_ascii_strcasecmp(connection, "close");
-    }
 }

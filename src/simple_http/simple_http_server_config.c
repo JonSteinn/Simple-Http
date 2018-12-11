@@ -1,5 +1,23 @@
 #include "simple_http_server_config.h"
 
+// 'Private' function definitions
+void _config_set_default(Config* cfg);
+void _config_set_from_file(GHashTable* settings, char* path);
+void _config_parse_line(GHashTable* settings, char* line, int32_t chars_read);
+void _config_split_line(GHashTable* settings, char* line, int32_t chars_read, int32_t run, int32_t split);
+void _config_set_from_args(GHashTable* settings, int32_t argc, char** argv);
+void _config_set(Config* cfg, GHashTable* settings);
+void _config_set_debug(Config* cfg, char* value);
+void _config_set_port(Config* cfg, char* value);
+void _config_set_max_queued(Config* cfg, char* value);
+void _config_set_max_clients(Config* cfg, char* value);
+void _config_set_buffer_size(Config* cfg, char* value);
+void _config_set_ip(Config* cfg, char* value);
+void _config_set_poll_timeout(Config* cfg, char* value);
+void _config_set_inactive_timeout(Config* cfg, char* value);
+void _config_set_server_name(Config* cfg, char* value);
+void _config_set_static_cache_time(Config* cfg, char* value);
+
 /**
  * Constructs a new config struct. It has the priority of
  *     1) arguments 
@@ -21,6 +39,18 @@ void init_config(Server* server, char* path, int32_t argc, char** argv) {
 
     sh_print_config(server);
 }
+
+/**
+ * Deallocate (deep) the config struct.
+ */
+void destroy_config(Server* server) {
+    free(server->cfg->server_name);
+    free(server->cfg);
+}
+
+/////////////////////
+// Private helpers //
+/////////////////////
 
 /**
  * Sets fields of config struct to their default values.
@@ -345,12 +375,4 @@ void _config_set_static_cache_time(Config* cfg, char* value) {
     }
 
     cfg->inactive_timeout = seconds_in_a_year;
-}
-
-/**
- * Deallocate (deep) the config struct.
- */
-void destroy_config(Server* server) {
-    free(server->cfg->server_name);
-    free(server->cfg);
 }

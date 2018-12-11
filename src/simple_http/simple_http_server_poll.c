@@ -1,5 +1,13 @@
 #include "simple_http_server_poll.h"
 
+#define NO_FD -1
+#define SERVER_INDEX 0
+
+// 'Private' function definitions
+void _compress_fds_from_right_end(Server* server);
+void _compress_fds_from_left_end(Server* server);
+void _remove_excessive_fds(Server* server);
+
 /**
  * Create polling struct for server.
  */
@@ -8,10 +16,10 @@ void init_poll(Server* server) {
 
     server->poll->fds = (struct pollfd*)calloc(server->cfg->max_clients + 1, sizeof(struct pollfd));
     for (int32_t i = 0; i <= server->cfg->max_clients; i++) {
-        server->poll->fds[i].fd = -1;
+        server->poll->fds[i].fd = NO_FD;
         server->poll->fds[i].events = POLLIN;
     }
-    server->poll->fds[0].fd = server->fd;
+    server->poll->fds[SERVER_INDEX].fd = server->fd;
 
     server->poll->compress = false;
     server->poll->fds_in_use = 1;
@@ -39,7 +47,7 @@ bool has_event(Server* server, bool* run) {
  * Check if communication is a new client.
  */
 bool new_client_event(Server* server) {
-    return existing_client_event(0, server);
+    return existing_client_event(SERVER_INDEX, server);
 }
 
 /**
@@ -69,10 +77,23 @@ void compress_fds(Server* server) {
 }
 
 /**
+ * Realease resources for polling struct. It handles
+ * freeing any deep memory allocated by the initializer.
+ */
+void destroy_poll(Server* server) {
+    free(server->poll->fds);
+    free(server->poll);
+}
+
+/////////////////////
+// Private helpers //
+/////////////////////
+
+/**
  * Reduce fds_in_use for any trailing fd that is -1.
  */
 void _compress_fds_from_right_end(Server* server) {
-    while (server->poll->fds[server->poll->fds_in_use - 1].fd == -1) {
+    while (server->poll->fds[server->poll->fds_in_use - 1].fd == NO_FD) {
         server->poll->fds_in_use--;
     }
 }
@@ -88,7 +109,6 @@ void _compress_fds_from_left_end(Server* server) {
             for(int32_t j = i; j < server->poll->fds_in_use - 1; j++) {
                 server->poll->fds[j].fd = server->poll->fds[j+1].fd;
                 server->poll->fds[j].revents = server->poll->fds[j+1].revents;
-                server->poll->fds[j].events = server->poll->fds[j+1].events;
             }
             server->poll->fds_in_use--;
         }
@@ -100,16 +120,10 @@ void _compress_fds_from_left_end(Server* server) {
  * right end, they are set to -1 here.
  */
 void _remove_excessive_fds(Server* server) {
-    for (int32_t i = server->poll->fds_in_use; i < server->cfg->max_clients + 1 && server->poll->fds[i].fd != -1; i++) {
-        server->poll->fds[i].fd = -1;
+    for (int32_t i = server->poll->fds_in_use; i < server->cfg->max_clients + 1 && server->poll->fds[i].fd != NO_FD; i++) {
+        server->poll->fds[i].fd = NO_FD;
     }
 }
 
-/**
- * Realease resources for polling struct. It handles
- * freeing any deep memory allocated by the initializer.
- */
-void destroy_poll(Server* server) {
-    free(server->poll->fds);
-    free(server->poll);
-}
+#undef SERVER_INDEX
+#undef NO_FD

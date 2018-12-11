@@ -19,21 +19,16 @@
 #include "types/simple_http_type_response.h"
 #include "types/simple_http_type_config.h"
 #include "types/simple_http_type_server.h"
+
 #include "simple_http_util.h"
 #include "simple_http_status_codes.h"
 
 void init_resposne(Server* server);
 void restart_response(Server* server);
 void destroy_response(Server* server);
-
 void set_default_response_headlers(Server* server);
-
 GString* convert_response_to_string(Server* server, bool is_head);
-void _append_header_to_string(gpointer key, gpointer val, gpointer data);
-void _cookie_joiner(gpointer key, gpointer val, gpointer data);
-
 void init_default_responses(Server* server);
-void _free_default_response(gpointer mem);
 void destroy_default_responses(Server* server);
 
 #endif

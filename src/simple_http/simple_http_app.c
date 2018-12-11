@@ -1,8 +1,12 @@
 #include "simple_http_app.h"
 
+// Defines
+#define CLIENT_START_INDEX 1
+
 // 'Private' function definitions
 void _initialize_all(Server* server, char* path, int32_t argc, char** argv);
 bool _invalid_route(Method method, const char* path, route_function function);
+bool _invalid_method(Method method);
 bool _add_valid_route(Server* server, Method method, const char* path, route_function function);
 void _server_loop(Server* server);
 void _destroy_all(Server* server);
@@ -69,6 +73,10 @@ void destroy_server(Server* server) {
     _destroy_all(server);
 }
 
+/////////////////////
+// Private helpers //
+/////////////////////
+
 /**
  * Call init for all parts.
  */
@@ -90,8 +98,14 @@ void _initialize_all(Server* server, char* path, int32_t argc, char** argv) {
  * Check if route parameters are valid.
  */
 bool _invalid_route(Method method, const char* path, route_function function) {
-    return method < 0 || method > 8 || method == METHOD_HEAD || 
-            path == NULL || function == NULL || !validate_route(path);
+    return _invalid_method(method) || path == NULL || function == NULL || !validate_route(path);
+}
+
+/**
+ * Check if method is okay to define route for.
+ */
+bool _invalid_method(Method method) {
+    return method < 0 || method > 8 || method == METHOD_HEAD;
 }
 
 /**
@@ -117,7 +131,7 @@ void _server_loop(Server* server) {
             if (new_client_event(server)) {
                 add_new_client(server);
             }
-            for (int32_t i = 1; i < server->poll->fds_in_use && run; i++) {
+            for (int32_t i = CLIENT_START_INDEX; i < server->poll->fds_in_use && run; i++) {
                 if (existing_client_event(i, server)) {
                     proccess_client_event(server, i);
                 }
@@ -147,3 +161,6 @@ void _destroy_all(Server* server) {
     destroy_static_files(server);
     destroy_loggging(server);
 }
+
+// remove defines
+#undef CLIENT_START_INDEX

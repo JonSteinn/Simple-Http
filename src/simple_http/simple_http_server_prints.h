@@ -1,3 +1,10 @@
+/*************************************************************
+ * Written by: Jón Steinn Elíasson                           *
+ *                                                           *
+ * Handles anything that is put to either the standard out   *
+ * or the standard err.                                      *
+ *************************************************************/
+
 #ifndef JwOUYdG3Ag_SIMPLE_HTTP_SERVER_PRINTS_H
 #define JwOUYdG3Ag_SIMPLE_HTTP_SERVER_PRINTS_H
 
@@ -43,5 +50,6 @@ void sh_print_socket_error();
 void sh_print_bind_error();
 void sh_print_listen_error();
 void sh_print_poll_error(bool run);
+void sh_print_send_error(Server* server);
 
 #endif

@@ -23,10 +23,6 @@
 #include "simple_http_server_prints.h"
 
 void init_socket(Server* server, bool* run);
-void _initialize_address(Server* server);
-void _setup_socket(Server* server);
-void _bind_socket(Server* server);
-void _listen_on_socket(Server* server);
 void destroy_socket(Server* server);
 
 #endif

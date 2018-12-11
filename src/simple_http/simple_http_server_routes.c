@@ -1,31 +1,31 @@
 #include "simple_http_server_routes.h"
 
+#define METHOD_COUNT 9
+
+// 'Private' function definitions
+void _home_add_new_route(GHashTable* dictionary, route_function function);
+route_part* _alloc_new_route_part(bool init_next, route_function function);
+bool _sub_add_new_route(char** parts, GHashTable* dictionary, route_function function);
+bool _home_find_and_call_route_callback(Server* server, GHashTable* dictionary);
+bool _sub_find_and_call_route_callback(Server* server, GHashTable* dictionary, char** parts);
+
 /**
  * Initialize an array of route dictionaries. Each entry in the
  * array corresponds to a single http method (GET/HEAD/etc). Each
  * dictionary maps strings to a sub-dictionary and a function.
  */
 void init_routes(Server* server) {
-    server->routes = (GHashTable**)malloc(sizeof(GHashTable*) * 9);
-    for (int32_t i = 0; i < 9; i++) {
+    server->routes = (GHashTable**)malloc(sizeof(GHashTable*) * METHOD_COUNT);
+    for (int32_t i = 0; i < METHOD_COUNT; i++) {
         server->routes[i] = g_hash_table_new_full(g_str_hash, g_str_equal, free, _free_routes);
     }
-}
-
-/**
- * Value de-allocator for route dictionaries.
- */
-void _free_routes(gpointer mem) {
-    route_part* part = (route_part*)mem;
-    if (part->next != NULL) g_hash_table_destroy(part->next);
-    free(part); 
 }
 
 /**
  * De-allocate the array of route dictionaries.
  */
 void destroy_routes(Server* server) {
-    for (int32_t i = 0; i < 9; i++) {
+    for (int32_t i = 0; i < METHOD_COUNT; i++) {
         g_hash_table_destroy(server->routes[i]);
     }
     free(server->routes);
@@ -47,6 +47,71 @@ bool add_new_route(Server* server, Method method, route_function callback, const
     
     g_strfreev(parts);
     return is_valid;
+}
+
+/**
+ * Try finding the path and method's callback for the
+ * currently stored request. If successful, we call the
+ * callback function and return true. Otherwise false is
+ * returned.
+ */
+bool find_and_call_route_callback(Server* server) {
+    GHashTable* dictionary = server->routes[server->request->method];
+    char** parts = g_strsplit(server->request->path->str, "/", -1);
+    bool found = true;
+
+    if (parts[0] == NULL) {
+        found = _home_find_and_call_route_callback(server, dictionary);
+    } else {
+        found = _sub_find_and_call_route_callback(server, dictionary, parts);
+    }
+
+    g_strfreev(parts);
+    return found;
+}
+
+/**
+ * Validate routes set by framework user.
+ */
+bool validate_route(const char* path) {
+    size_t len = strlen(path);
+    for (size_t i = 0; i < len; i++) {
+        if ((path[i] >= 'a' && path[i] <= 'z') ||
+            (path[i] >= 'A' && path[i] <= 'Z') ||
+            (path[i] >= '0' && path[i] <= '9')) {
+            
+            continue;
+        }
+
+        char* legal = "/{}$-_.+!*'()";
+        size_t legal_len = strlen(legal);
+        bool valid = false;
+
+        for (size_t j = 0; j < legal_len; j++) {
+            if (path[i] == legal[j]) {
+                valid = true;
+                break;
+            }
+        }
+        
+        if (!valid) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/////////////////////
+// Private helpers //
+/////////////////////
+
+/**
+ * Value de-allocator for route dictionaries.
+ */
+void _free_routes(gpointer mem) {
+    route_part* part = (route_part*)mem;
+    if (part->next != NULL) g_hash_table_destroy(part->next);
+    free(part); 
 }
 
 /**
@@ -110,27 +175,6 @@ bool _sub_add_new_route(char** parts, GHashTable* dictionary, route_function fun
     }
 
     return true;
-}
-
-/**
- * Try finding the path and method's callback for the
- * currently stored request. If successful, we call the
- * callback function and return true. Otherwise false is
- * returned.
- */
-bool find_and_call_route_callback(Server* server) {
-    GHashTable* dictionary = server->routes[server->request->method];
-    char** parts = g_strsplit(server->request->path->str, "/", -1);
-    bool found = true;
-
-    if (parts[0] == NULL) {
-        found = _home_find_and_call_route_callback(server, dictionary);
-    } else {
-        found = _sub_find_and_call_route_callback(server, dictionary, parts);
-    }
-
-    g_strfreev(parts);
-    return found;
 }
 
 /**
@@ -207,33 +251,4 @@ bool _sub_find_and_call_route_callback(Server* server, GHashTable* dictionary, c
     return found;
 }
 
-/**
- * Validate routes set by framework user.
- */
-bool validate_route(const char* path) {
-    size_t len = strlen(path);
-    for (size_t i = 0; i < len; i++) {
-        if ((path[i] >= 'a' && path[i] <= 'z') ||
-            (path[i] >= 'A' && path[i] <= 'Z') ||
-            (path[i] >= '0' && path[i] <= '9')) {
-            
-            continue;
-        }
-
-        char* legal = "/{}$-_.+!*'()";
-        size_t legal_len = strlen(legal);
-        bool valid = false;
-
-        for (size_t j = 0; j < legal_len; j++) {
-            if (path[i] == legal[j]) {
-                valid = true;
-                break;
-            }
-        }
-        
-        if (!valid) {
-            return false;
-        }
-    }
-    return true;
-}
+#undef METHOD_COUNT

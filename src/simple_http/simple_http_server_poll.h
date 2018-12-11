@@ -26,9 +26,6 @@ bool has_event(Server* server, bool* run);
 bool new_client_event(Server* server);
 bool existing_client_event(int32_t index, Server* server);
 void compress_fds(Server* server);
-void _compress_fds_from_right_end(Server* server);
-void _compress_fds_from_left_end(Server* server);
-void _remove_excessive_fds(Server* server);
 void destroy_poll(Server* server);
 
 #endif

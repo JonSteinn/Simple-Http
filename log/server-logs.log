@@ -1,0 +1,5 @@
+> [Mon, 10 Dec 2018 19:31:10 GMT]-[127.0.0.1:187]-[GET]-[/]-[HTTP/1.1]-[200]
+> [Mon, 10 Dec 2018 19:31:10 GMT]-[127.0.0.1:187]-[GET]-[/favicon.ico]-[HTTP/1.1]-[404]
+> [Mon, 10 Dec 2018 19:31:11 GMT]-[127.0.0.1:187]-[GET]-[/index.html]-[HTTP/1.1]-[200]
+> [Mon, 10 Dec 2018 19:31:11 GMT]-[127.0.0.1:187]-[GET]-[/scripts/megascript.js]-[HTTP/1.1]-[200]
+> [Mon, 10 Dec 2018 19:31:11 GMT]-[127.0.0.1:187]-[GET]-[/favicon.ico]-[HTTP/1.1]-[404]

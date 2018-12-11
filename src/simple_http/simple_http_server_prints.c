@@ -1,10 +1,16 @@
 #include "simple_http_server_prints.h"
 
+/**
+ * Display exit message.
+ */
 void sh_print_shutdown() {
     printf("\nShutting down\n");
     fflush(stdout);
 }
 
+/**
+ * Dispaly start message.
+ */
 void sh_print_start_message(Server* server, bool run) {
     if (run) {
         char ip_str[16];
@@ -14,17 +20,6 @@ void sh_print_start_message(Server* server, bool run) {
         fflush(stdout);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * Display the entire configuration.
@@ -75,6 +70,9 @@ void sh_print_socket(Server* server) {
     fflush(stdout);
 }
 
+/**
+ * Display how configuring the server went.
+ */
 void sh_print_config_done(Server* server, bool run) {
     if (!server->cfg->debug) {
         return;
@@ -85,6 +83,9 @@ void sh_print_config_done(Server* server, bool run) {
     fflush(stdout);
 }
 
+/**
+ * Display if adding route worked.
+ */
 void sh_print_adding_route(Server* server, const char* path, bool valid) {
     
     if (!server->cfg->debug) {
@@ -100,6 +101,9 @@ void sh_print_adding_route(Server* server, const char* path, bool valid) {
     fflush(stdout);
 }
 
+/**
+ * Show if accepting a connection failed.
+ */
 void sh_print_accept_failed(Server* server) {
     if (!server->cfg->debug) {
         return;
@@ -109,6 +113,10 @@ void sh_print_accept_failed(Server* server) {
     fflush(stdout);
 }
 
+/**
+ * Show if there is no room for a new client in the
+ * pollfd data structure.
+ */
 void sh_print_no_room(Server* server) {
     if (!server->cfg->debug) {
         return;
@@ -118,6 +126,9 @@ void sh_print_no_room(Server* server) {
     fflush(stdout);
 }
 
+/**
+ * Show new client when tcp connection has been established.
+ */
 void sh_print_new_client(Server* server, Client* client) {
     if (!server->cfg->debug) {
         return;
@@ -127,6 +138,9 @@ void sh_print_new_client(Server* server, Client* client) {
     fflush(stdout);
 }
 
+/**
+ * Show which client is being timed out.
+ */
 void sh_print_timeout(Server* server, int32_t fd) {
     if (!server->cfg->debug) {
         return;
@@ -138,6 +152,9 @@ void sh_print_timeout(Server* server, int32_t fd) {
     fflush(stdout);
 }
 
+/**
+ * Show which client is being removed.
+ */
 void sh_print_remove_client(Server* server, int32_t fd) {
     if (!server->cfg->debug) {
         return;
@@ -149,6 +166,9 @@ void sh_print_remove_client(Server* server, int32_t fd) {
     fflush(stdout);
 }
 
+/**
+ * If recv fails, show it and for which client.
+ */
 void sh_print_failed_to_recv(Server* server, Client* client) {
     if (!server->cfg->debug) {
         return;
@@ -157,6 +177,9 @@ void sh_print_failed_to_recv(Server* server, Client* client) {
     fflush(stdout);
 }
 
+/**
+ * Show clients with invalid requests.
+ */
 void sh_print_parse_fail(Server* server, Client* client) {
     if (!server->cfg->debug) {
         return;
@@ -165,6 +188,10 @@ void sh_print_parse_fail(Server* server, Client* client) {
     fflush(stdout);
 }
 
+/**
+ * Normal transactions printing.
+ * > [time]-[client]-[method]-[path]-[version]-[status code]
+ */
 void sh_print_request_response(Server* server, Client* client, bool found, bool head) {
     if (!server->cfg->debug) {
         return;
@@ -204,6 +231,9 @@ void sh_print_request_response(Server* server, Client* client, bool found, bool 
     fflush(stdout);
 }
 
+/**
+ * Display array of fds.
+ */
 void sh_print_fd_array(Server* server, bool before_compress) {
     if (!server->cfg->debug) {
         return;
@@ -216,35 +246,56 @@ void sh_print_fd_array(Server* server, bool before_compress) {
     fflush(stdout);
 }
 
-
-
-
-
-
-
+/**
+ * If error from signal call.
+ */
 void sh_print_signal_error() {
     perror("Error setting signal\n");
     fflush(stderr);
 }
 
+/**
+ * If error from socket call.
+ */
 void sh_print_socket_error() {
     perror("Failed to create socket!\n");
     fflush(stderr);
 }
 
+/**
+ * If error from bind call.
+ */
 void sh_print_bind_error() {
     perror("Failed to bind socket!");
     fflush(stderr);
 }
 
+/**
+ * If error from listen call.
+ */
 void sh_print_listen_error() {
     perror("Failed to listen on socket!\n");
     fflush(stderr);
 }
 
+/**
+ * If error from poll call.
+ */
 void sh_print_poll_error(bool run) {
     if (run) {
         perror("Poll failed!\n");
         fflush(stderr);
     }
+}
+
+/**
+ * If error from send call.
+ */
+void sh_print_send_error(Server* server) {
+    if (!server->cfg->debug) {
+        return;
+    }
+    
+    perror("Failed to send\n");
+    fflush(stderr);
 }

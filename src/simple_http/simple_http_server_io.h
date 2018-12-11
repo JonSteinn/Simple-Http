@@ -18,14 +18,14 @@
 #include "types/simple_http_type_client.h"
 #include "types/simple_http_type_config.h"
 #include "types/simple_http_type_server.h"
+
 #include "simple_http_server_response.h"
+#include "simple_http_server_prints.h"
 
 void init_io(Server* server);
 void destroy_io(Server* server);
-
 bool send_g_string(Server* server, int32_t fd, GString* respsone);
 bool send_default(Server* server, int32_t fd, int32_t status_code);
-
 bool recv_from_client_successs(Server* server, int32_t fd, Client* client, bool* complete);
 
 #endif

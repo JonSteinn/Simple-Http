@@ -25,9 +25,7 @@ bool send_g_string(Server* server, int32_t fd, GString* response) {
     while (total < response->len) {
         ssize_t tmp = send(fd, response->str + total, response->len - total, 0);
         if (tmp < 0) {
-            if (server->cfg->debug) {
-                perror("Failed to send\n");
-            }
+            sh_print_send_error(server);
             return false;
         }
         total += tmp;
