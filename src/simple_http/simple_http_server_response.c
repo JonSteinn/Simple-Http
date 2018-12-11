@@ -114,6 +114,24 @@ void override_default_response(Server* server, Response* response, int32_t statu
     }
 }
 
+/**
+ * Add header to a given response.
+ */
+void add_response_header(Response* response, const char* key, const char* value) {
+    if (key && value) {
+        g_hash_table_insert(response->headers, g_strdup(key), g_strdup(value));
+    }
+}
+
+/**
+ * Add cookie to a given response.
+ */
+void add_response_cookie(Response* response, const char* key, const char* value) {
+    if (key) {
+        g_hash_table_insert(response->cookies, g_strdup(key), value ? g_strdup(value) : g_strdup(""));
+    }
+}
+
 /////////////////////
 // Private helpers //
 /////////////////////

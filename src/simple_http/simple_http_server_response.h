@@ -33,5 +33,7 @@ GString* convert_response_to_string(Server* server, bool is_head);
 void init_default_responses(Server* server);
 void destroy_default_responses(Server* server);
 void override_default_response(Server* server, Response* response, int32_t status_code, bool free_response_memory);
+void add_response_header(Response* response, const char* key, const char* value);
+void add_response_cookie(Response* response, const char* key, const char* value);
 
 #endif

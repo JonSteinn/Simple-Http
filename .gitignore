@@ -51,5 +51,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+#logs
 log/valgrind-report.txt
-#log/server-logs.log
+log/server-logs.log

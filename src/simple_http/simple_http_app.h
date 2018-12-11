@@ -30,6 +30,9 @@
 #include "simple_http_server_logging.h"
 #include "simple_http_server_prints.h"
 
+// RouteHandler(<function_name>, { <function_body> })
+#define RouteHandler(name, body) void name(__attribute__((unused)) Request* req, __attribute__((unused)) Response* res, __attribute__((unused)) int32_t argc, __attribute__((unused)) char** argv) body
+
 void config_server(Server* server, char* path, int32_t argc, char** argv);
 void add_route(Server* server, Method method, const char* path, route_function function);
 void start_server(Server* server);
