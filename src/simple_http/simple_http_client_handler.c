@@ -179,9 +179,9 @@ void _answer_client(Server* server, Client* client, int32_t fd, int32_t i) {
                      (server->static_files->has_static && 
                      server->request->method == METHOD_GET && 
                      read_file_into_response(server));
-                     
+
         if (found) {
-            set_default_response_headlers(server);
+            set_default_response_headers(server);
             GString* response = convert_response_to_string(server, head);
             send_g_string(server, fd, response);
             g_string_free(response, true);

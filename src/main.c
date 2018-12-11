@@ -44,6 +44,11 @@ int32_t main(int32_t argc, char** argv) {
     
     // Add routes here
     add_route(&server, METHOD_GET, "", &t1);
+    
+    Response* r = create_empty_response();
+    g_hash_table_insert(r->headers, g_strdup("Content-Type"), g_strdup("text/html"));
+    g_string_append(r->body, "<!DOCTYPE html><html><head><title>OVERRIDE</title></head><body>X</body></html>");
+    override_default_response(&server, r, status_code.NOT_FOUND, true);
     //add_route(&server, METHOD_GET, "a/b", &t2);
     //add_route(&server, METHOD_GET, "a/b/{arg}/c/{arg}", &t3);
     //add_route(&server, METHOD_GET, "{arg}", &t4);

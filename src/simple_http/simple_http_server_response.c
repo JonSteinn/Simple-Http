@@ -5,6 +5,8 @@ void _append_header_to_string(gpointer key, gpointer val, gpointer data);
 void _cookie_joiner(gpointer key, gpointer val, gpointer data);
 void _free_default_response(gpointer mem);
 void _fill_default_dictionary(GHashTable* dictionary);
+void _set_default_headers(Response* response, const char* server_name);
+GString* _convert_response_to_string_helper(Response* response, bool include_body);
 
 /**
  * Initialize the single response object that the server holds
@@ -12,12 +14,21 @@ void _fill_default_dictionary(GHashTable* dictionary);
  * destroy_reponse.
  */
 void init_resposne(Server* server) {
-    server->response = (Response*)malloc(sizeof(Response));
+    server->response = create_empty_response();
+}
+
+/**
+ * Create an empty response object.
+ */
+Response* create_empty_response() {
+    Response* response = (Response*)malloc(sizeof(Response));
     
-    server->response->headers = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-    server->response->cookies = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-    server->response->body = g_string_new(NULL);
-    server->response->status_code = 0;
+    response->headers = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+    response->body = g_string_new(NULL);
+    response->status_code = 0;
+    response->cookies = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+    return response;
 }
 
 /**
@@ -34,11 +45,19 @@ void restart_response(Server* server) {
  * De-allocate whatever memory was allocated with init_response.
  */
 void destroy_response(Server* server) {
-    g_hash_table_destroy(server->response->headers);
-    g_hash_table_destroy(server->response->cookies);
-    g_string_free(server->response->body, true);
+    free_response(server->response);
+}
 
-    free(server->response);
+/**
+ * De-allocate response resources.
+ */
+void free_response(Response* response) {
+
+    g_hash_table_destroy(response->headers);
+    g_hash_table_destroy(response->cookies);
+    g_string_free(response->body, true);
+
+    free(response);
 }
 
 /**
@@ -48,57 +67,15 @@ void destroy_response(Server* server) {
  * (name of the server). If the framework user has
  * already set these headers, they are overwritten.
  */
-void set_default_response_headlers(Server* server) {
-    // Conrent-Length
-    GString* tmp_str = g_string_new(NULL);
-    g_string_append_printf(tmp_str, "%zu", server->response->body->len);
-    g_hash_table_insert(server->response->headers, g_strdup("Content-Length"), g_strdup(tmp_str->str));
-    g_string_free(tmp_str, true);
-
-    // Date
-    time_t rawtime;
-    struct tm* timeinfo;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    char timestamp[30];
-    memset(timestamp, 0, sizeof(timestamp));
-    strftime(timestamp, 30, "%a, %d %b %Y %X GMT", timeinfo);
-    g_hash_table_insert(server->response->headers, g_strdup("Date"), g_strdup(timestamp));
-
-    // Server
-    g_hash_table_insert(server->response->headers, g_strdup("Server"), g_strdup(server->cfg->server_name));
+void set_default_response_headers(Server* server) {
+    _set_default_headers(server->response, server->cfg->server_name);
 }
 
 /**
  * Convert the server's response to a GString.
  */
 GString* convert_response_to_string(Server* server, bool is_head) {
-    GString* str = g_string_new_len(NULL, 1000);
-
-    // Start line
-    g_string_append_printf(str, "HTTP/1.1 %d %s\r\n", server->response->status_code, 
-        get_status_code_name(server->response->status_code));
-
-    // Headers (excluding Set-Cookie)
-    g_hash_table_foreach(server->response->headers, _append_header_to_string, str);
-
-    // Cookies
-    GString* cookie_tmp_str = g_string_new(NULL);
-    g_hash_table_foreach(server->response->cookies, _cookie_joiner, cookie_tmp_str);
-    if (cookie_tmp_str->len > 0) {
-        g_string_append_printf(str, "Set-Cookie: %s\r\n", cookie_tmp_str->str);
-    }
-    g_string_free(cookie_tmp_str, true);
-
-    // Blank line
-    g_string_append(str, "\r\n");
-
-    // Body
-    if (!is_head && server->response->body->len > 0) {
-        g_string_append(str, server->response->body->str);
-    }
-
-    return str;
+    return _convert_response_to_string_helper(server->response, !is_head && server->response->body->len > 0);
 }
 
 /**
@@ -115,6 +92,26 @@ void init_default_responses(Server* server) {
  */
 void destroy_default_responses(Server* server) {
     g_hash_table_destroy(server->default_response);
+}
+
+/**
+ * Override a default response for a specific status code. If
+ * free_response_memory is true, then the response is de-allocated
+ * in this function. Otherwise it is left to the caller.
+ */
+void override_default_response(Server* server, Response* response, int32_t status_code, bool free_response_memory) {
+    if (!g_ascii_strcasecmp(get_status_code_name(status_code), "Unknown")) {
+        return;
+    }
+
+    response->status_code = status_code;
+    _set_default_headers(response, server->cfg->server_name);
+    GString* response_str = _convert_response_to_string_helper(response, response->body->len > 0);
+    g_hash_table_insert(server->default_response, alloc_int(status_code), response_str);
+
+    if (free_response_memory) {
+        free_response(response);
+    }
 }
 
 /////////////////////
@@ -153,6 +150,63 @@ void _cookie_joiner(gpointer key, gpointer val, gpointer data) {
  */
 void _free_default_response(gpointer mem) {
     g_string_free((GString*)mem, true);
+}
+
+/**
+ * Add default headers to given response.
+ */
+void _set_default_headers(Response* response, const char* server_name) {
+
+    // Conrent-Length
+    GString* tmp_str = g_string_new(NULL);
+    g_string_append_printf(tmp_str, "%zu", response->body->len);
+    g_hash_table_insert(response->headers, g_strdup("Content-Length"), g_strdup(tmp_str->str));
+    g_string_free(tmp_str, true);
+
+    // Date
+    time_t rawtime;
+    struct tm* timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    char timestamp[30];
+    memset(timestamp, 0, sizeof(timestamp));
+    strftime(timestamp, 30, "%a, %d %b %Y %X GMT", timeinfo);
+    g_hash_table_insert(response->headers, g_strdup("Date"), g_strdup(timestamp));
+
+    // Server
+    g_hash_table_insert(response->headers, g_strdup("Server"), g_strdup(server_name));
+}
+
+/**
+ * Helper to convert any response to a GString.
+ */
+GString* _convert_response_to_string_helper(Response* response, bool include_body) {
+    GString* str = g_string_new_len(NULL, 1000);
+
+    // Start line
+    g_string_append_printf(str, "HTTP/1.1 %d %s\r\n", response->status_code, 
+        get_status_code_name(response->status_code));
+
+    // Headers (excluding Set-Cookie)
+    g_hash_table_foreach(response->headers, _append_header_to_string, str);
+
+    // Cookies
+    GString* cookie_tmp_str = g_string_new(NULL);
+    g_hash_table_foreach(response->cookies, _cookie_joiner, cookie_tmp_str);
+    if (cookie_tmp_str->len > 0) {
+        g_string_append_printf(str, "Set-Cookie: %s\r\n", cookie_tmp_str->str);
+    }
+    g_string_free(cookie_tmp_str, true);
+
+    // Blank line
+    g_string_append(str, "\r\n");
+
+    // Body
+    if (include_body) {
+        g_string_append(str, response->body->str);
+    }
+
+    return str;
 }
 
 /**

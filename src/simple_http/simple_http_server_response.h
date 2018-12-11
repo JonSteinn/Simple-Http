@@ -24,11 +24,14 @@
 #include "simple_http_status_codes.h"
 
 void init_resposne(Server* server);
+Response* create_empty_response();
 void restart_response(Server* server);
 void destroy_response(Server* server);
-void set_default_response_headlers(Server* server);
+void free_response(Response* response);
+void set_default_response_headers(Server* server);
 GString* convert_response_to_string(Server* server, bool is_head);
 void init_default_responses(Server* server);
 void destroy_default_responses(Server* server);
+void override_default_response(Server* server, Response* response, int32_t status_code, bool free_response_memory);
 
 #endif
